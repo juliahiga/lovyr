@@ -79,23 +79,29 @@ const Navbar = () => {
                 src={user.picture}
                 alt={user.name}
                 className="user-avatar"
-                onClick={() => setMenuOpen((prev) => !prev)}
+                onMouseDown={(e) => { e.stopPropagation(); setMenuOpen((prev) => !prev); }}
                 title={user.name}
               />
               {menuOpen && (
                 <div className="avatar-menu">
-                  <button onClick={() => { navigate("/perfil"); setMenuOpen(false); }}>
+                  <button
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={() => { navigate("/perfil"); setMenuOpen(false); }}
+                  >
                     Perfil
                   </button>
-                  <button onClick={async () => {
-                    await fetch("http://localhost:3001/api/users/logout", {
-                      method: "POST",
-                      credentials: "include",
-                    });
-                    setMenuOpen(false);
-                    navigate("/");
-                    setUser(null);
-                  }}>
+                  <button
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={async () => {
+                      await fetch("http://localhost:3001/api/users/logout", {
+                        method: "POST",
+                        credentials: "include",
+                      });
+                      setMenuOpen(false);
+                      navigate("/");
+                      setUser(null);
+                    }}
+                  >
                     Deslogar
                   </button>
                 </div>

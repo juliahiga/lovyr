@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import "../styles/ImageCropModal.css";
 
-const ImageCropModal = ({ onConfirm, onClose }) => {
-  const [imageSrc, setImageSrc] = useState(null);
+// Prop `src` é opcional.
+// Se passada, pula a seleção de arquivo (uso na criação de personagem).
+// Se não passada, exibe o seletor normalmente (uso no perfil).
+const ImageCropModal = ({ onConfirm, onClose, src: externalSrc = null, title = "Foto de Perfil" }) => {
+  const [imageSrc, setImageSrc] = useState(externalSrc);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [imagePos, setImagePos] = useState({ x: 0, y: 0 });
   const [box, setBox] = useState({ x: 0, y: 0, width: 200, height: 200 });
@@ -146,7 +149,7 @@ const ImageCropModal = ({ onConfirm, onClose }) => {
     <div className="modal-overlay">
       <div className="modal-box">
         <div className="modal-header">
-          <span>Foto de Perfil</span>
+          <span>{title}</span>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
@@ -158,12 +161,16 @@ const ImageCropModal = ({ onConfirm, onClose }) => {
             </label>
           ) : (
             <>
-              <img src={imageSrc} alt="preview" style={{
-                position: "absolute",
-                width: imageSize.width, height: imageSize.height,
-                top: imagePos.y, left: imagePos.x,
-                userSelect: "none", pointerEvents: "none",
-              }} />
+              <img
+                src={imageSrc}
+                alt="preview"
+                style={{
+                  position: "absolute",
+                  width: imageSize.width, height: imageSize.height,
+                  top: imagePos.y, left: imagePos.x,
+                  userSelect: "none", pointerEvents: "none",
+                }}
+              />
 
               <div style={{ position: "absolute", backgroundColor: "rgba(0,0,0,0.6)", pointerEvents: "none",
                 left: imagePos.x, top: imagePos.y, width: imageSize.width, height: box.y - imagePos.y }} />

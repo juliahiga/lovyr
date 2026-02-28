@@ -27,6 +27,9 @@ app.use(session({
 
 app.use("/api/users", usersRouter);
 
+const tlouRouter = require("./routes/tlou");
+app.use("/api/tlou", tlouRouter);
+
 app.listen(process.env.PORT, () => {
   console.log(`Servidor rodando na porta ${process.env.PORT}`);
 });

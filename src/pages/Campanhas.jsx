@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Campanhas.css";
 import tlouImg from "../assets/tlouTTRPG.png";
@@ -10,33 +10,83 @@ const sistemas = [
 
 const Campanhas = () => {
   const { user, triggerLogin } = useUser();
-  const campanhas = [];
+  const [campanhas, setCampanhas] = useState([]);
+  const [carregando, setCarregando] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [hoveredSistema, setHoveredSistema] = useState(null);
   const navigate = useNavigate();
 
+  // Busca campanhas do usuário logado (como mestre ou jogador)
+  useEffect(() => {
+    if (!user) return;
+    setCarregando(true);
+    fetch("/api/tlou/campanhas", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => setCampanhas(Array.isArray(data) ? data : []))
+      .catch(() => setCampanhas([]))
+      .finally(() => setCarregando(false));
+  }, [user]);
+
   return (
     <div className="campanhas-page">
-      {campanhas.length === 0 ? (
+      {carregando ? (
+        <p style={{ color: "#ccc", textAlign: "center" }}>Carregando campanhas...</p>
+      ) : campanhas.length === 0 ? (
         <div className="campanhas-empty">
-          <p className="campanhas-empty-text">VOCÊ AINDA NÃO CRIOU OU PARTICIPA DE NENHUMA CAMPANHA!</p>
+          <p className="campanhas-empty-text">
+            VOCÊ AINDA NÃO CRIOU OU PARTICIPA DE NENHUMA CAMPANHA!
+          </p>
           <button
             className="campanhas-novo-btn"
             onClick={() => {
-              if (!user) {
-                triggerLogin();
-              } else {
-                setModalOpen(true);
-              }
+              if (!user) triggerLogin();
+              else setModalOpen(true);
             }}
           >
             NOVA CAMPANHA
           </button>
         </div>
       ) : (
-        <div className="campanhas-lista" />
+        <div className="campanhas-lista">
+          {/* Botão nova campanha no topo */}
+          <button
+            className="campanhas-novo-btn"
+            onClick={() => {
+              if (!user) triggerLogin();
+              else setModalOpen(true);
+            }}
+            style={{ marginBottom: "1.5rem" }}
+          >
+            NOVA CAMPANHA
+          </button>
+
+          {/* Cards das campanhas */}
+          {campanhas.map((c) => (
+            <div
+              key={c.id}
+              className="campanha-card"
+              onClick={() => navigate(`/campanha/${c.id}`)}
+              style={{ cursor: "pointer" }}
+            >
+              <div className="campanha-card-nome">{c.nome}</div>
+              <div className="campanha-card-info">
+                {c.sou_mestre ? "🎲 Mestre" : `👤 ${c.nome_mestre}`}
+                {" · "}
+                {c.total_jogadores}/{c.max_jogadores} jogadores
+                {c.nivel && ` · ${c.nivel}`}
+              </div>
+              {c.descricao && (
+                <div
+                  className="campanha-card-descricao"
+                  dangerouslySetInnerHTML={{ __html: c.descricao }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
       )}
 
+      {/* Modal de seleção de sistema */}
       {modalOpen && (
         <div className="sistema-overlay" onClick={() => setModalOpen(false)}>
           <div className="sistema-modal" onClick={(e) => e.stopPropagation()}>

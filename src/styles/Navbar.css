@@ -11,47 +11,44 @@
   left: 0;
   z-index: 1000;
 }
-
 .navbar-left {
   margin-left: 30px;
 }
-
 .logo {
   height: 40px;
 }
-
 .navbar-center {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  pointer-events: none;
 }
-
 .navbar-center ul {
   list-style: none;
   display: flex;
   gap: 50px;
   margin: 0;
   padding: 0;
+  pointer-events: none;
 }
-
 .navbar-center li a {
   color: #C79255;
   text-decoration: none;
   font-family: "Cardo", serif;
   font-size: 32px;
+  pointer-events: all;
 }
-
 .navbar-center li a:hover {
   text-decoration: none;
   transition: ease-in-out 0.2s;
   color: #7a5c3b;
 }
-
 .navbar-right {
   margin-right: 30px;
   margin-left: auto;
+  position: relative;
+  z-index: 1001;
 }
-
 .login-btn {
   background-color: #C79255;
   color: white;
@@ -64,11 +61,9 @@
   font-size: 20px;
   transition: background-color 0.3s ease;
 }
-
 .login-btn:hover {
   background-color: #7a5c3b;
 }
-
 .divider {
   width: 100%;
   height: 5px;
@@ -78,22 +73,19 @@
   left: 0;
   z-index: 999;
 }
-
 .user-avatar {
   width: 55px;
   height: 55px;
   border-radius: 50%;
-  border: 3px solid #C79255;
+  border: 2px solid #C79255;
   cursor: pointer;
   object-fit: cover;
   transition: border-color 0.3s ease;
   margin-top: 4px;
 }
-
 .avatar-wrapper {
   position: relative;
 }
-
 .avatar-menu {
   position: absolute;
   right: 0;
@@ -105,9 +97,8 @@
   display: flex;
   flex-direction: column;
   min-width: 130px;
-  z-index: 999;
+  z-index: 1002;
 }
-
 .avatar-menu button {
   background: none;
   border: none;
@@ -119,7 +110,6 @@
   text-align: left;
   transition: background-color 0.2s;
 }
-
 .avatar-menu button:hover {
   background-color: #7a5c3b;
   color: white;
