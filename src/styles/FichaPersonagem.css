@@ -64,18 +64,27 @@
 .ficha-identidade {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
   border-bottom: 2px solid #C79255;
 }
 
 .ficha-identidade-col {
   display: flex;
   flex-direction: column;
-  padding: 8px 16px;
-  gap: 2px;
+  padding: 7px 16px;
+  gap: 1px;
+  border-bottom: 1px solid #2a2218;
 }
 
-.ficha-identidade-col:first-child {
-  border-right: 1px solid #C79255;
+/* segunda linha — sem borda inferior (já tem o border-bottom do pai) */
+.ficha-identidade-col:nth-child(3),
+.ficha-identidade-col:nth-child(4) {
+  border-bottom: none;
+}
+
+/* separador vertical entre as colunas */
+.ficha-identidade-col:nth-child(odd) {
+  border-right: 1px solid #2a2218;
 }
 
 .ficha-identidade-label {
@@ -89,6 +98,63 @@
   font-size: 1rem;
   color: #fff;
   font-weight: 600;
+}
+
+/* ── CAMPOS EDITÁVEIS ── */
+.ficha-identidade-editavel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin: -1px -4px;
+  transition: background 0.15s;
+  width: fit-content;
+}
+
+.ficha-identidade-editavel:hover {
+  background: rgba(199, 146, 85, 0.08);
+}
+
+.ficha-identidade-edit-icon {
+  font-size: 0.55rem;
+  color: #5a4a30;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.ficha-identidade-editavel:hover .ficha-identidade-edit-icon {
+  opacity: 1;
+  color: #C79255;
+}
+
+.ficha-identidade-vazio {
+  color: #4a3a28;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.ficha-identidade-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #C79255;
+  outline: none;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: "Be Vietnam Pro", sans-serif;
+  padding: 1px 2px;
+  width: 100%;
+  max-width: 280px;
+}
+
+/* Campo estático (nivel/classe) */
+.ficha-identidade-static {
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
 }
 
 /* ── BODY — 3 COLUNAS ── */
@@ -378,8 +444,8 @@
   display: flex;
   align-items: stretch;
   height: 40px;
-  position: relative;        /* fill se posiciona aqui */
-  background: #0e0c08;       /* fundo escuro = vida perdida */
+  position: relative;
+  background: #0e0c08;
   overflow: hidden;
 }
 
@@ -393,7 +459,6 @@
   z-index: 0;
 }
 
-/* botões e centro ficam na frente do fill, fundo transparente */
 .vida-btn {
   position: relative;
   z-index: 1;
@@ -420,7 +485,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;   /* transparente, mostra o fill atrás */
+  background: transparent;
 }
 
 .vida-barra-texto {

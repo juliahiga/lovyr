@@ -9,7 +9,7 @@ html, body {
 }
 
 #root {
-  padding-top: 0;
+  padding-top: 75px; /* altura da navbar (70px) + divider (5px) */
   height: 100%;
   overflow-y: auto;
 }

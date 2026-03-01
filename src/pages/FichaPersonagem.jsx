@@ -13,12 +13,64 @@ const periciasConfig = [
     { key: "medicina", label: "Medicina" },
 ];
 
+
+
 const dadosOpcoes = ["D4", "D6", "D8", "D10", "D12"];
 
 const rolarDado = (dadoStr) => {
     const faces = parseInt(dadoStr.replace("D", ""), 10);
     return Math.floor(Math.random() * faces) + 1;
 };
+
+/* ── CAMPO EDITÁVEL INLINE ── */
+const CampoEditavel = ({ valor, onSalvar, placeholder, className }) => {
+    const [editando, setEditando] = useState(false);
+    const [inputVal, setInputVal] = useState(valor);
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+        setInputVal(valor);
+    }, [valor]);
+
+    useEffect(() => {
+        if (editando && inputRef.current) inputRef.current.select();
+    }, [editando]);
+
+    const confirmar = () => {
+        onSalvar(inputVal.trim() || valor);
+        setEditando(false);
+    };
+
+    if (editando) {
+        return (
+            <input
+                ref={inputRef}
+                className={`ficha-identidade-input ${className || ""}`}
+                value={inputVal}
+                placeholder={placeholder}
+                onChange={(e) => setInputVal(e.target.value)}
+                onBlur={confirmar}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") confirmar();
+                    if (e.key === "Escape") { setInputVal(valor); setEditando(false); }
+                }}
+            />
+        );
+    }
+
+    return (
+        <span
+            className={`ficha-identidade-valor ficha-identidade-editavel ${className || ""}`}
+            onClick={() => setEditando(true)}
+            title="Clique para editar"
+        >
+            {valor || <span className="ficha-identidade-vazio">{placeholder}</span>}
+            <i className="fas fa-pen ficha-identidade-edit-icon" />
+        </span>
+    );
+};
+
+
 
 const DadoSelector = ({ valor, onChange }) => {
     const [aberto, setAberto] = useState(false);
@@ -122,33 +174,114 @@ const ResultadoRolagem = ({ resultado, onFechar }) => {
 };
 
 /* ── VIDA CONTROL ── */
-const VidaControl = ({ valor, max, onChange }) => {
-    const [editando, setEditando] = useState(false);
-    const [inputVal, setInputVal] = useState(String(valor));
-    const inputRef = useRef(null);
+const VidaControl = ({ valor, max, onChange, onChangeMax }) => {
+    const [editandoAtual, setEditandoAtual] = useState(false);
+    const [editandoMax, setEditandoMax] = useState(false);
+    const [inputAtual, setInputAtual] = useState(String(valor));
+    const [inputMax, setInputMax] = useState(String(max));
+    const inputAtualRef = useRef(null);
+    const inputMaxRef = useRef(null);
 
     useEffect(() => {
-        if (editando && inputRef.current) inputRef.current.select();
-    }, [editando]);
+        if (editandoAtual && inputAtualRef.current) inputAtualRef.current.select();
+    }, [editandoAtual]);
 
-    const confirmar = () => {
-        const num = parseInt(inputVal, 10);
+    useEffect(() => {
+        if (editandoMax && inputMaxRef.current) inputMaxRef.current.select();
+    }, [editandoMax]);
+
+    const confirmarAtual = () => {
+        const num = parseInt(inputAtual, 10);
         if (!isNaN(num)) onChange(num);
-        setEditando(false);
+        setEditandoAtual(false);
+    };
+
+    const confirmarMax = () => {
+        const num = parseInt(inputMax, 10);
+        if (!isNaN(num)) onChangeMax(num);
+        setEditandoMax(false);
     };
 
     const pct = max > 0 ? Math.min(100, Math.round((valor / max) * 100)) : 0;
+
+    const slotStyle = {
+        display: "inline-block",
+        width: "42px",
+        textAlign: "center",
+        cursor: "text",
+    };
+
+    const inputStyle = {
+        width: "42px",
+        background: "transparent",
+        border: "none",
+        outline: "none",
+        color: "#fff",
+        fontSize: "1rem",
+        fontWeight: "700",
+        textAlign: "center",
+        fontFamily: '"Be Vietnam Pro", sans-serif',
+        letterSpacing: "2px",
+    };
 
     return (
         <div className="vida-control">
             <div className="vida-titulo">VIDA</div>
             <div className="vida-barra-wrapper">
-                <div className="vida-barra-fill" style={{ width: `${pct}%` }} />  {/* ← fora do bg */}
+                <div className="vida-barra-fill" style={{ width: `${pct}%` }} />
                 <button className="vida-btn" onClick={() => onChange(valor - 5)}>«</button>
                 <button className="vida-btn" onClick={() => onChange(valor - 1)}>‹</button>
+
                 <div className="vida-barra-bg">
-                    <span className="vida-barra-texto">{valor} / {max}</span>
+                    <div className="vida-barra-texto">
+                        <span style={slotStyle}>
+                            {editandoAtual ? (
+                                <input
+                                    ref={inputAtualRef}
+                                    className="vida-input-edit"
+                                    style={inputStyle}
+                                    type="number"
+                                    value={inputAtual}
+                                    onChange={(e) => setInputAtual(e.target.value)}
+                                    onBlur={confirmarAtual}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") confirmarAtual();
+                                        if (e.key === "Escape") setEditandoAtual(false);
+                                    }}
+                                />
+                            ) : (
+                                <span onClick={() => { setInputAtual(String(valor)); setEditandoAtual(true); }}>
+                                    {valor}
+                                </span>
+                            )}
+                        </span>
+
+                        <span style={{ opacity: 0.5 }}>/</span>
+
+                        <span style={slotStyle}>
+                            {editandoMax ? (
+                                <input
+                                    ref={inputMaxRef}
+                                    className="vida-input-edit"
+                                    style={inputStyle}
+                                    type="number"
+                                    value={inputMax}
+                                    onChange={(e) => setInputMax(e.target.value)}
+                                    onBlur={confirmarMax}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") confirmarMax();
+                                        if (e.key === "Escape") setEditandoMax(false);
+                                    }}
+                                />
+                            ) : (
+                                <span onClick={() => { setInputMax(String(max)); setEditandoMax(true); }}>
+                                    {max}
+                                </span>
+                            )}
+                        </span>
+                    </div>
                 </div>
+
                 <button className="vida-btn" onClick={() => onChange(valor + 1)}>›</button>
                 <button className="vida-btn" onClick={() => onChange(valor + 5)}>»</button>
             </div>
@@ -199,6 +332,11 @@ const FichaPersonagem = () => {
     const [carregando, setCarregando] = useState(true);
     const [abaAtiva, setAbaAtiva] = useState("combate");
 
+    const [nomePersonagem, setNomePersonagem] = useState("");
+    const [nomeJogador, setNomeJogador] = useState("");
+    const [tipoSobrevivente, setTipoSobrevivente] = useState("");
+    const [classeSobrevivente, setClasseSobrevivente] = useState("");
+
     const [vidaAtual, setVidaAtual] = useState(0);
     const [vidaMax, setVidaMax] = useState(0);
     const [sucata, setSucata] = useState("");
@@ -215,6 +353,10 @@ const FichaPersonagem = () => {
             .then((r) => r.json())
             .then((data) => {
                 setFicha(data);
+                setNomePersonagem(data.nome_personagem ?? "");
+                setNomeJogador(data.nome_jogador ?? "");
+                setTipoSobrevivente(data.nivel ?? "");
+                setClasseSobrevivente(data.classe ?? "");
                 setVidaAtual(data.vida_atual ?? data.vida_maxima ?? 0);
                 setVidaMax(data.vida_maxima ?? 0);
                 setPilulas(data.pilulas ?? "");
@@ -263,14 +405,35 @@ const FichaPersonagem = () => {
             </div>
 
             <div className="ficha-sheet">
+                {/* ── IDENTIDADE ── */}
                 <div className="ficha-identidade">
                     <div className="ficha-identidade-col">
-                        <span className="ficha-identidade-label">NOME DO PERSONAGEM</span>
-                        <span className="ficha-identidade-valor">{ficha.nome_personagem}</span>
+                        <span className="ficha-identidade-label">PERSONAGEM</span>
+                        <CampoEditavel
+                            valor={nomePersonagem}
+                            onSalvar={setNomePersonagem}
+                            placeholder="Nome do personagem"
+                        />
                     </div>
                     <div className="ficha-identidade-col">
                         <span className="ficha-identidade-label">JOGADOR</span>
-                        <span className="ficha-identidade-valor">{ficha.nome_jogador}</span>
+                        <CampoEditavel
+                            valor={nomeJogador}
+                            onSalvar={setNomeJogador}
+                            placeholder="Nome do jogador"
+                        />
+                    </div>
+                    <div className="ficha-identidade-col">
+                        <span className="ficha-identidade-label">SOBREVIVENTE</span>
+                        <span className="ficha-identidade-valor ficha-identidade-static">
+                            {tipoSobrevivente || <span className="ficha-identidade-vazio">—</span>}
+                        </span>
+                    </div>
+                    <div className="ficha-identidade-col">
+                        <span className="ficha-identidade-label">CLASSE</span>
+                        <span className="ficha-identidade-valor ficha-identidade-static">
+                            {classeSobrevivente || <span className="ficha-identidade-vazio">—</span>}
+                        </span>
                     </div>
                 </div>
 
@@ -281,15 +444,15 @@ const FichaPersonagem = () => {
                         <div className="ficha-pericias-bloco">
                             <div className="ficha-avatar-wrapper">
                                 {ficha.imagem ? (
-                                    <img src={ficha.imagem} alt={ficha.nome_personagem} className="ficha-avatar-img" />
+                                    <img src={ficha.imagem} alt={nomePersonagem} className="ficha-avatar-img" />
                                 ) : (
                                     <div className="ficha-avatar-placeholder">
-                                        {ficha.nome_personagem?.[0]?.toUpperCase() || "?"}
+                                        {nomePersonagem?.[0]?.toUpperCase() || "?"}
                                     </div>
                                 )}
                             </div>
 
-                            <VidaControl valor={vidaAtual} max={vidaMax} onChange={setVidaAtual} />
+                            <VidaControl valor={vidaAtual} max={vidaMax} onChange={setVidaAtual} onChangeMax={setVidaMax} />
 
                             <table className="ficha-pericias-tabela">
                                 <thead>
