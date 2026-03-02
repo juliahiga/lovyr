@@ -1,15 +1,11 @@
-/* index.css */
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap');
 
 html, body {
   margin: 0;
   padding: 0;
   background-color: #14120E;
-  height: 100%;
 }
 
 #root {
-  padding-top: 75px; /* altura da navbar (70px) + divider (5px) */
-  height: 100%;
-  overflow-y: auto;
+  padding-top: 75px;
 }

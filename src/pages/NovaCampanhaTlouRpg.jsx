@@ -1,91 +1,108 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/NovaCampanhaTlouRpg.css";
+import { useUser } from "../context/UserContext";
 
-const NovaCampanhaTlouRpg = () => {
+const NovaCampanhaTLOU = () => {
+  const { user } = useUser();
   const navigate = useNavigate();
-  const [nome, setNome] = useState("");
-  const [escudoPrivado, setEscudoPrivado] = useState(false);
-  const [salvando, setSalvando] = useState(false);
-  const [erro, setErro] = useState(null);
-  const descricaoRef = useRef(null);
 
-  const formatarTexto = (comando) => {
-    document.execCommand(comando, false, null);
-    descricaoRef.current?.focus();
+  const [nome, setNome]                   = useState("");
+  const [imagem, setImagem]               = useState(null);
+  const [imagemPreview, setImagemPreview] = useState(null);
+  const [enviando, setEnviando]           = useState(false);
+  const editorRef                         = useRef(null);
+  const fileInputRef                      = useRef(null);
+
+  const handleImagem = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setImagem(ev.target.result);
+      setImagemPreview(ev.target.result);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleCriar = async () => {
+  const handleRemoverImagem = () => {
+    setImagem(null);
+    setImagemPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleFormat = (cmd) => {
+    document.execCommand(cmd, false, null);
+    editorRef.current?.focus();
+  };
+
+  const handleSubmit = async () => {
     if (!nome.trim()) return;
-
-    const descricao = descricaoRef.current?.innerHTML || "";
-
-    setSalvando(true);
-    setErro(null);
-
+    setEnviando(true);
     try {
+      const descricaoHTML = editorRef.current?.innerHTML || "";
       const res = await fetch("http://localhost:3001/api/tlou/campanhas", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nome: nome.trim(),
-          descricao,
-          max_jogadores: 4,
+          nome,
+          descricao: descricaoHTML,
+          imagem: imagem || null,
         }),
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setErro(data.error || "Erro ao criar campanha");
-        return;
-      }
-
-      navigate("/campanhas");
-    } catch {
-      setErro("Erro de conexão com o servidor");
+      const data = await res.json();
+      if (res.ok) navigate(`/campanha/${data.id}`);
     } finally {
-      setSalvando(false);
+      setEnviando(false);
     }
   };
 
+  const podeCriar = nome.trim().length > 0;
+
   return (
     <div className="nova-campanha-page">
-      <h1 className="nova-campanha-titulo">Criar Campanha</h1>
+      <h1 className="nova-campanha-titulo">Nova Campanha</h1>
 
       <div className="nova-campanha-form">
+
         {/* Nome */}
         <div className="nc-field">
           <label className="nc-label">
-            Nome<span className="nc-obrigatorio">*</span>
+            Nome da Campanha <span className="nc-obrigatorio">*</span>
           </label>
           <input
             className="nc-input"
             type="text"
+            placeholder="Ex: A Última Esperança"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-            placeholder="Nome da campanha"
+            maxLength={150}
           />
         </div>
 
-        {/* Escudo do Mestre */}
+        {/* Imagem */}
         <div className="nc-field">
-          <label className="nc-label">Escudo do Mestre Privado</label>
-          <p className="nc-obs">Obs: essa opção pode ser editada após a criação da campanha</p>
-          <div className="nc-toggle">
-            <button
-              className={`nc-toggle-btn ${!escudoPrivado ? "active" : ""}`}
-              onClick={() => setEscudoPrivado(false)}
-            >
-              DESLIGADO
+          <label className="nc-label">Imagem de Campanha</label>
+          {imagemPreview ? (
+            <div className="nc-imagem-preview-wrap">
+              <img src={imagemPreview} alt="preview" className="nc-imagem-preview" />
+              <button className="nc-remover-imagem" onClick={handleRemoverImagem}>
+                ✕ Remover
+              </button>
+            </div>
+          ) : (
+            <button className="nc-upload-btn" onClick={() => fileInputRef.current?.click()}>
+              📁 Escolher imagem
             </button>
-            <button
-              className={`nc-toggle-btn ${escudoPrivado ? "active" : ""}`}
-              onClick={() => setEscudoPrivado(true)}
-            >
-              LIGADO
-            </button>
-          </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleImagem}
+          />
         </div>
 
         {/* Descrição */}
@@ -93,12 +110,12 @@ const NovaCampanhaTlouRpg = () => {
           <label className="nc-label">Descrição</label>
           <div className="nc-editor">
             <div className="nc-editor-toolbar">
-              <button className="nc-format-btn" onClick={() => formatarTexto("bold")}><b>B</b></button>
-              <button className="nc-format-btn" onClick={() => formatarTexto("italic")}><i>I</i></button>
-              <button className="nc-format-btn" onClick={() => formatarTexto("underline")}><u>U</u></button>
+              <button className="nc-format-btn" onClick={() => handleFormat("bold")}><b>B</b></button>
+              <button className="nc-format-btn" onClick={() => handleFormat("italic")}><i>I</i></button>
+              <button className="nc-format-btn" onClick={() => handleFormat("underline")}><u>U</u></button>
             </div>
             <div
-              ref={descricaoRef}
+              ref={editorRef}
               className="nc-editor-body"
               contentEditable
               suppressContentEditableWarning
@@ -106,25 +123,22 @@ const NovaCampanhaTlouRpg = () => {
           </div>
         </div>
 
-        {/* Erro */}
-        {erro && <p style={{ color: "#e55", fontSize: "0.9rem" }}>{erro}</p>}
-
         {/* Ações */}
         <div className="nc-acoes">
           <button className="nc-cancelar-btn" onClick={() => navigate("/campanhas")}>
             Cancelar
           </button>
           <button
-            className={`nc-criar-btn ${!nome.trim() || salvando ? "disabled" : ""}`}
-            onClick={handleCriar}
-            disabled={!nome.trim() || salvando}
+            className={`nc-criar-btn ${!podeCriar || enviando ? "disabled" : ""}`}
+            onClick={podeCriar && !enviando ? handleSubmit : undefined}
           >
-            {salvando ? "Criando..." : "Criar"}
+            {enviando ? "Criando..." : "Criar Campanha"}
           </button>
         </div>
+
       </div>
     </div>
   );
 };
 
-export default NovaCampanhaTlouRpg;
+export default NovaCampanhaTLOU;

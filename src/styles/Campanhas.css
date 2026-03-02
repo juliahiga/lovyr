@@ -1,3 +1,4 @@
+/* ── PAGE ── */
 .campanhas-page {
   height: calc(100vh - 91px);
   margin-top: 91px;
@@ -12,6 +13,13 @@
   box-sizing: border-box;
 }
 
+.campanhas-loading {
+  color: #C79255;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 18px;
+}
+
+/* ── EMPTY STATE ── */
 .campanhas-empty {
   display: flex;
   flex-direction: column;
@@ -21,14 +29,15 @@
 
 .campanhas-empty-text {
   color: #C79255;
-  font-family: 'Google Sans', sans-serif;
+  font-family: "Be Vietnam Pro", sans-serif;
   font-size: 30px;
   letter-spacing: 2px;
   margin: 0;
   font-weight: bolder;
-  opacity: 1;
+  text-align: center;
 }
 
+/* ── BOTÃO NOVA CAMPANHA ── */
 .campanhas-novo-btn {
   background-color: #C79255;
   font-weight: bolder;
@@ -36,7 +45,7 @@
   border: none;
   border-radius: 10px;
   padding: 12px 35px;
-  font-family: 'Google Sans', sans-serif;
+  font-family: "Be Vietnam Pro", sans-serif;
   font-size: 20px;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -46,19 +55,304 @@
   background-color: #7a5c3b;
 }
 
-/* As classes .sistema-* já estão definidas no Personagens.css,
-   mas caso Campanhas.css seja carregado de forma isolada,
-   elas são replicadas abaixo para garantir o funcionamento. */
+/* ── COM LISTA ── */
+.campanhas-com-lista {
+  width: 100%;
+  max-width: 1500px;
+}
 
-.sistema-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: #14120E;
+.campanhas-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.campanhas-contador {
+  color: #C79255;
+  font-weight: bold;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+/* ── GRID 3x3 ── */
+.campanhas-lista {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* ── CARD ── */
+.campanha-card {
+  display: flex;
+  flex-direction: column;
+  background: #1a1610;
+  border: 1px solid #c7925546;
+  border-radius: 10px;
+  overflow: hidden;
+  font-family: "Be Vietnam Pro", sans-serif;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+/* ── IMAGEM ── */
+.campanha-card-imagem {
+  width: 100%;
+  height: 180px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.campanha-card-imagem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.campanha-card-imagem-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #2a2520;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
-  padding-top: 91px;
+  font-size: 3rem;
+  color: #C79255;
+}
+
+.campanha-card-jogadores {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  background: transparent;
+  color: #fff;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+}
+
+/* ── Lixeira do mestre ── */
+.campanha-card-deletar {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #cc4444;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: color 0.2s, background-color 0.2s;
+  line-height: 1;
+}
+
+.campanha-card-deletar:hover {
+  color: #ff6666;
+  background: rgba(0,0,0,0.4);
+}
+
+/* ── Modal de confirmação ── */
+.confirmar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 600;
+}
+
+.confirmar-modal-novo {
+  background: #1c1a14;
+  border: 1px solid #3a3020;
+  border-radius: 10px;
+  padding: 24px 28px;
+  width: 480px;
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+
+.confirmar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.confirmar-titulo {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.confirmar-fechar {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.confirmar-fechar:hover { color: #fff; }
+
+.confirmar-descricao {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 0.9rem;
+  color: #ccc;
+  margin: 0;
+}
+
+.confirmar-descricao strong { color: #fff; font-weight: 700; }
+
+.confirmar-aviso {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 0.82rem;
+  color: #c0392b;
+  margin: 0;
+}
+
+.confirmar-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.confirmar-input {
+  flex: 1;
+  background-color: #14120e;
+  border: 1px solid #3a3020;
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 0.9rem;
+  color: #ebdfb3;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.confirmar-input:focus { border-color: #C79255; }
+
+.confirmar-btn-confirmar {
+  background: #2a2520;
+  border: 1px solid #3a3020;
+  color: #666;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 0.85rem;
+  padding: 9px 16px;
+  border-radius: 6px;
+  cursor: not-allowed;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.confirmar-btn-confirmar.ativo {
+  background: #c0392b;
+  border-color: #c0392b;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.confirmar-btn-confirmar.ativo:hover { background: #e74c3c; }
+
+/* ── INFO ── */
+.campanha-card-info {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px 0 14px;
+  gap: 3px;
+  min-width: 0;
+}
+
+.campanha-card-nome {
+  font-size: 18px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+}
+
+.campanha-card-sistema {
+  color: #C79255;
+  font-size: 13px;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+/* ── RODAPÉ: meta + botão na mesma linha ── */
+.campanha-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px 12px 14px;
+  margin-top: 6px;
+  gap: 8px;
+}
+
+.campanha-card-meta {
+  color: #777;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.campanha-role {
+  font-weight: bold;
+}
+
+.campanha-role.mestre {
+  color: #C79255;
+}
+
+.campanha-role.jogador {
+  color: #aaa;
+}
+
+.campanha-acessar-btn {
+  background: #C79255;
+  color: #fff;
+  border: none;
+  padding: 6px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-weight: bold;
+  font-size: 16px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+}
+
+.campanha-acessar-btn:hover {
+  background: #a07040;
+}
+
+/* ── MODAL SELEÇÃO DE SISTEMA ── */
+.sistema-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(20, 18, 14, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 600;
   box-sizing: border-box;
 }
 
@@ -79,7 +373,7 @@
 
 .sistema-titulo {
   color: #C79255;
-  font-family: 'Google Sans', sans-serif;
+  font-family: "Be Vietnam Pro", sans-serif;
   font-size: 32px;
   font-weight: 500;
   text-align: center;
@@ -122,7 +416,7 @@
   position: relative;
   z-index: 2;
   color: white;
-  font-family: 'Google Sans', sans-serif;
+  font-family: "Be Vietnam Pro", sans-serif;
   font-size: 16px;
   font-weight: bold;
   text-align: center;
