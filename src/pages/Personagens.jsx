@@ -54,7 +54,7 @@ const PersonagemCard = ({ p, onDeletar, onDuplicar }) => {
       <div className="personagem-card-acoes">
         <button
           className="personagem-acessar-btn"
-          onClick={() => navigate(`/personagem/${p.id}`)}
+          onClick={() => navigate(`/ficha/${p.id}`)}
         >
           Acessar Ficha
         </button>

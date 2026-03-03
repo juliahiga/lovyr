@@ -23,13 +23,13 @@ function calcularPericias(body) {
 
   const mapa = {
     Sobrevivência: "sobrevivencia",
-    Agilidade:     "agilidade",
-    Coleta:        "coleta",
-    Instinto:      "instinto",
-    Brutalidade:   "brutalidade",
-    Mira:          "mira",
-    Manutenção:    "manutencao",
-    Medicina:      "medicina",
+    Agilidade: "agilidade",
+    Coleta: "coleta",
+    Instinto: "instinto",
+    Brutalidade: "brutalidade",
+    Mira: "mira",
+    Manutenção: "manutencao",
+    Medicina: "medicina",
   };
 
   const bonus = (pericia) => {
@@ -47,8 +47,6 @@ function calcularPericias(body) {
 
   return pericias;
 }
-
-// ─── FICHAS ───────────────────────────────────────────────────────────────────
 
 router.get("/fichas", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
@@ -124,26 +122,26 @@ router.post("/fichas", async (req, res) => {
     const pericias = calcularPericias(req.body);
 
     const result = await pool.request()
-      .input("user_id",            sql.Int,               user.id)
-      .input("nome_jogador",        sql.NVarChar(100),     nome_jogador || user.name)
-      .input("nome_personagem",     sql.NVarChar(100),     nome_personagem)
-      .input("nivel_id",            sql.Int,               nivel_id)
-      .input("classe_id",           sql.Int,               classe_id)
-      .input("idade_id",            sql.Int,               idade_id)
-      .input("personalidade_id",    sql.Int,               personalidade_id)
-      .input("pericia_escolhida",   sql.NVarChar(50),      pericia_escolhida)
-      .input("traco_id",            sql.Int,               traco_id)
-      .input("motivacao_id",        sql.Int,               motivacao_id)
-      .input("pilulas",             sql.Int,               pilulas_iniciais || 100)
-      .input("sobrevivencia",       sql.Int,               pericias.sobrevivencia)
-      .input("agilidade",           sql.Int,               pericias.agilidade)
-      .input("coleta",              sql.Int,               pericias.coleta)
-      .input("instinto",            sql.Int,               pericias.instinto)
-      .input("brutalidade",         sql.Int,               pericias.brutalidade)
-      .input("mira",                sql.Int,               pericias.mira)
-      .input("manutencao",          sql.Int,               pericias.manutencao)
-      .input("medicina",            sql.Int,               pericias.medicina)
-      .input("imagem",              sql.NVarChar(sql.MAX), req.body.imagem || null)
+      .input("user_id", sql.Int, user.id)
+      .input("nome_jogador", sql.NVarChar(100), nome_jogador || user.name)
+      .input("nome_personagem", sql.NVarChar(100), nome_personagem)
+      .input("nivel_id", sql.Int, nivel_id)
+      .input("classe_id", sql.Int, classe_id)
+      .input("idade_id", sql.Int, idade_id)
+      .input("personalidade_id", sql.Int, personalidade_id)
+      .input("pericia_escolhida", sql.NVarChar(50), pericia_escolhida)
+      .input("traco_id", sql.Int, traco_id)
+      .input("motivacao_id", sql.Int, motivacao_id)
+      .input("pilulas", sql.Int, pilulas_iniciais || 100)
+      .input("sobrevivencia", sql.Int, pericias.sobrevivencia)
+      .input("agilidade", sql.Int, pericias.agilidade)
+      .input("coleta", sql.Int, pericias.coleta)
+      .input("instinto", sql.Int, pericias.instinto)
+      .input("brutalidade", sql.Int, pericias.brutalidade)
+      .input("mira", sql.Int, pericias.mira)
+      .input("manutencao", sql.Int, pericias.manutencao)
+      .input("medicina", sql.Int, pericias.medicina)
+      .input("imagem", sql.NVarChar(sql.MAX), req.body.imagem || null)
       .query(`
         INSERT INTO tlou_fichas (
           user_id, nome_jogador, nome_personagem,
@@ -178,7 +176,7 @@ router.get("/fichas/:id", async (req, res) => {
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
 
     const result = await pool.request()
-      .input("id",      sql.Int, req.params.id)
+      .input("id", sql.Int, req.params.id)
       .input("user_id", sql.Int, user.id)
       .query(`
         SELECT
@@ -217,7 +215,7 @@ router.delete("/fichas/:id", async (req, res) => {
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
 
     await pool.request()
-      .input("id",      sql.Int, req.params.id)
+      .input("id", sql.Int, req.params.id)
       .input("user_id", sql.Int, user.id)
       .query("DELETE FROM tlou_fichas WHERE id = @id AND user_id = @user_id");
 
@@ -241,7 +239,7 @@ router.post("/fichas/:id/duplicar", async (req, res) => {
       return res.status(400).json({ error: "Limite de 12 personagens atingido" });
 
     const result = await pool.request()
-      .input("id",      sql.Int, req.params.id)
+      .input("id", sql.Int, req.params.id)
       .input("user_id", sql.Int, user.id)
       .query(`
         INSERT INTO tlou_fichas (
@@ -319,13 +317,13 @@ router.post("/campanhas", async (req, res) => {
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
 
     const result = await pool.request()
-      .input("user_id_mestre",        sql.Int,               user.id)
-      .input("nome_mestre",           sql.NVarChar(100),     user.name)
-      .input("nome",                  sql.NVarChar(150),     nome)
-      .input("descricao",             sql.NVarChar(1000),    descricao || null)
-      .input("max_jogadores",         sql.Int,               max_jogadores || 4)
-      .input("nivel_sobrevivente_id", sql.Int,               nivel_id || null)
-      .input("imagem",                sql.NVarChar(sql.MAX), imagem || null)
+      .input("user_id_mestre", sql.Int, user.id)
+      .input("nome_mestre", sql.NVarChar(100), user.name)
+      .input("nome", sql.NVarChar(150), nome)
+      .input("descricao", sql.NVarChar(1000), descricao || null)
+      .input("max_jogadores", sql.Int, max_jogadores || 4)
+      .input("nivel_sobrevivente_id", sql.Int, nivel_id || null)
+      .input("imagem", sql.NVarChar(sql.MAX), imagem || null)
       .query(`
         INSERT INTO tlou_campanhas (
           user_id_mestre, nome_mestre, nome, descricao, max_jogadores, nivel_sobrevivente_id, image
@@ -350,7 +348,7 @@ router.delete("/campanhas/:id", async (req, res) => {
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
 
     const check = await pool.request()
-      .input("id",      sql.Int, req.params.id)
+      .input("id", sql.Int, req.params.id)
       .input("user_id", sql.Int, user.id)
       .query("SELECT id FROM tlou_campanhas WHERE id = @id AND user_id_mestre = @user_id");
     if (check.recordset.length === 0)
@@ -430,7 +428,7 @@ router.post("/campanhas/:id/entrar", async (req, res) => {
 
     const fichaCheck = await pool.request()
       .input("ficha_id", sql.Int, ficha_id)
-      .input("user_id",  sql.Int, user.id)
+      .input("user_id", sql.Int, user.id)
       .query("SELECT id, nome_personagem FROM tlou_fichas WHERE id = @ficha_id AND user_id = @user_id");
     if (fichaCheck.recordset.length === 0)
       return res.status(403).json({ error: "Ficha não pertence a você" });
@@ -446,10 +444,10 @@ router.post("/campanhas/:id/entrar", async (req, res) => {
       return res.status(400).json({ error: "Campanha já está cheia" });
 
     await pool.request()
-      .input("campanha_id",     sql.Int,           req.params.id)
-      .input("user_id",         sql.Int,           user.id)
-      .input("ficha_id",        sql.Int,           ficha_id)
-      .input("nome_jogador",    sql.NVarChar(100), user.name)
+      .input("campanha_id", sql.Int, req.params.id)
+      .input("user_id", sql.Int, user.id)
+      .input("ficha_id", sql.Int, ficha_id)
+      .input("nome_jogador", sql.NVarChar(100), user.name)
       .input("nome_personagem", sql.NVarChar(100), fichaCheck.recordset[0].nome_personagem)
       .query(`
         INSERT INTO tlou_campanha_jogadores (campanha_id, user_id, ficha_id, nome_jogador, nome_personagem)
@@ -477,13 +475,101 @@ router.get("/referencias", async (req, res) => {
       pool.request().query("SELECT * FROM tlou_classes ORDER BY id"),
     ]);
     res.json({
-      niveis:         niveis.recordset,
-      idades:         idades.recordset,
+      niveis: niveis.recordset,
+      idades: idades.recordset,
       personalidades: personalidades.recordset,
-      tracos:         tracos.recordset,
-      motivacoes:     motivacoes.recordset,
-      classes:        classes.recordset,
+      tracos: tracos.recordset,
+      motivacoes: motivacoes.recordset,
+      classes: classes.recordset,
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/loja", async (req, res) => {
+  try {
+    const pool = await poolPromise;
+    const [armas, melhorias, municoes, geral] = await Promise.all([
+      pool.request().query("SELECT * FROM tlou_armas ORDER BY nome"),
+      pool.request().query("SELECT * FROM tlou_armas_melhorias ORDER BY arma_id, id"),
+      pool.request().query("SELECT * FROM tlou_municoes ORDER BY nome"),
+      pool.request().query("SELECT * FROM tlou_itens_gerais ORDER BY nome"),
+    ]);
+    res.json({
+      armas: armas.recordset,
+      melhorias: melhorias.recordset,
+      municoes: municoes.recordset,
+      geral: geral.recordset,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put("/fichas/:id/salvar", async (req, res) => {
+  if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
+  const {
+    nome_personagem, nome_jogador,
+    vida_atual, vida_maxima, pilulas, sucata,
+    nivel_ferramenta, medicina_val,
+    brutalidade, mira, agilidade, instinto,
+    coleta, sobrevivencia, manutencao, medicina,
+    dados_pericias, habilidades_compradas, itens_mochila,
+  } = req.body;
+
+  try {
+    const pool = await poolPromise;
+    const user = await getUserId(pool, req.session.google_id);
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    await pool.request()
+      .input("id", sql.Int, parseInt(req.params.id))
+      .input("user_id", sql.Int, user.id)
+      .input("nome_personagem", sql.NVarChar(100), nome_personagem)
+      .input("nome_jogador", sql.NVarChar(100), nome_jogador)
+      .input("vida_atual", sql.Int, vida_atual)
+      .input("vida_maxima", sql.Int, vida_maxima)
+      .input("pilulas", sql.Int, pilulas)
+      .input("sucata", sql.Int, sucata)
+      .input("nivel_ferramenta", sql.Int, nivel_ferramenta)
+      .input("medicina_val", sql.NVarChar(50), medicina_val || null)
+      .input("brutalidade", sql.Int, brutalidade)
+      .input("mira", sql.Int, mira)
+      .input("agilidade", sql.Int, agilidade)
+      .input("instinto", sql.Int, instinto)
+      .input("coleta", sql.Int, coleta)
+      .input("sobrevivencia", sql.Int, sobrevivencia)
+      .input("manutencao", sql.Int, manutencao)
+      .input("medicina", sql.Int, medicina)
+      .input("dados_pericias", sql.NVarChar(500), dados_pericias || null)
+      .input("habilidades_compradas", sql.NVarChar(sql.MAX), habilidades_compradas || null)
+      .input("itens_mochila", sql.NVarChar(sql.MAX), itens_mochila || null)
+      .query(`
+                UPDATE tlou_fichas SET
+                    nome_personagem = @nome_personagem,
+                    nome_jogador = @nome_jogador,
+                    vida_atual = @vida_atual,
+                    vida_maxima = @vida_maxima,
+                    pilulas = @pilulas,
+                    sucata = @sucata,
+                    nivel_ferramenta = @nivel_ferramenta,
+                    medicina_val = @medicina_val,
+                    brutalidade = @brutalidade,
+                    mira = @mira,
+                    agilidade = @agilidade,
+                    instinto = @instinto,
+                    coleta = @coleta,
+                    sobrevivencia = @sobrevivencia,
+                    manutencao = @manutencao,
+                    medicina = @medicina,
+                    dados_pericias = @dados_pericias,
+                    habilidades_compradas = @habilidades_compradas,
+                    itens_mochila = @itens_mochila,
+                    atualizado_em = GETDATE()
+                WHERE id = @id AND user_id = @user_id
+            `);
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
