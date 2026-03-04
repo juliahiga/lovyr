@@ -275,10 +275,10 @@ const ResultadoRolagem = ({ resultado, onFechar }) => {
         const clsAtaque = resultado.rolagemAtaque === facesAtaque ? "critico-max" : resultado.rolagemAtaque === 1 ? "critico-min" : "";
         const ataqueColor = clsAtaque === "critico-max" ? "#22c55e" : clsAtaque === "critico-min" ? "#ef4444" : "#C79255";
         const ataqueShadow = clsAtaque === "critico-max" ? "0 0 24px rgba(34,197,94,0.55)" : clsAtaque === "critico-min" ? "0 0 24px rgba(239,68,68,0.55)" : "none";
-        const tooltipAtaque = `${resultado.periciaNome} [${resultado.dadoPericia}] = [${resultado.rolagemAtaque}]${resultado.bonusPericia !== 0 ? `${resultado.bonusPericia >= 0 ? "+" : ""}${resultado.bonusPericia}` : ""}`;
+        const tooltipAtaque = `${resultado.periciaNome} ${resultado.dadoPericia}[${resultado.rolagemAtaque}]${resultado.bonusPericia !== 0 ? ` ${resultado.bonusPericia >= 0 ? "+" : ""}${resultado.bonusPericia}` : ""} = ${resultado.ataqueTotal}`;
         const tooltipDano = resultado.tooltipDanoDetalhado
-            ? `${resultado.tooltipDanoDetalhado}${resultado.critico10 ? " ×2" : ""}`
-            : `${resultado.dado} = [${resultado.danoRolls?.length > 1 ? resultado.danoRolls.join(", ") : resultado.valorDado}]${resultado.ataqueBonus && parseInt(resultado.ataqueBonus) !== 0 ? `${parseInt(resultado.ataqueBonus) >= 0 ? "+" : ""}${resultado.ataqueBonus}` : ""}${resultado.critico10 ? " ×2" : ""}`;
+            ? `${resultado.tooltipDanoDetalhado}${resultado.critico10 ? " ×2" : ""} = ${resultado.total}`
+            : `${resultado.dado}[${resultado.danoRolls?.length > 1 ? resultado.danoRolls.join(", ") : resultado.valorDado}]${resultado.ataqueBonus && parseInt(resultado.ataqueBonus) !== 0 ? ` ${parseInt(resultado.ataqueBonus) >= 0 ? "+" : ""}${resultado.ataqueBonus}` : ""}${resultado.critico10 ? " ×2" : ""} = ${resultado.total}`;
         return (
             <div className="rolagem-overlay" onClick={onFechar}>
                 <div className={`rolagem-painel ${animando ? "rolagem-animando" : ""}`} onClick={e => e.stopPropagation()}>
@@ -513,7 +513,7 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
             const somaGrupo = rollsGrupo.reduce((a, b) => a + b, 0);
             totalDano += somaGrupo;
             processado = processado.replace(match[0], "");
-            const rollStr = qtd === 1 ? `${rollsGrupo[0]}` : rollsGrupo.join(",");
+            const rollStr = qtd === 1 ? `${rollsGrupo[0]}` : rollsGrupo.join(", ");
             partesDano.push(`${qtd}D${faces}[${rollStr}]`);
         }
         // bônus embutido na string de dano (ex: "3D8+5")
@@ -523,8 +523,8 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
         const bonusExtra = parseInt(bonusDano, 10) || 0;
         const bonusTotal = bonusEmbutido + bonusExtra;
         totalDano += bonusTotal;
-        let tooltipDanoStr = partesDano.join("+");
-        if (bonusTotal !== 0) tooltipDanoStr += `${bonusTotal >= 0 ? "+" : ""}${bonusTotal}`;
+        let tooltipDanoStr = partesDano.join(" + ");
+        if (bonusTotal !== 0) tooltipDanoStr += ` ${bonusTotal >= 0 ? "+" : ""}${bonusTotal}`;
         const dadoPericia  = (dadosRef?.current ?? dados)?.["mira"] ?? "D10";
         const bonusPericia = parseInt((bonusRef?.current ?? bonus)?.["mira"], 10) || 0;
         const facesPericia = parseInt(dadoPericia.replace("D", ""), 10);
@@ -947,11 +947,13 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
         const danoComBonus = danoVal + ataqueBonus;
         const critico10 = rolagemAtaque === facesPericia;
         const danoFinal = critico10 ? danoComBonus * 2 : danoComBonus;
+        // monta tooltip de dano: ex "1D8[5, 3] +2"
+        const tooltipDanoDetalhado = `${dadoDano}[${rolls.join(", ")}]${ataqueBonus !== 0 ? ` ${ataqueBonus >= 0 ? "+" : ""}${ataqueBonus}` : ""}`;
         onRolar({
             label: ataque.nome, danoRolls: rolls, dado: dadoDano, valorDado: danoVal,
             bonus: ataqueBonus, total: danoFinal, ataqueTotal, rolagemAtaque, dadoPericia,
             bonusPericia, ataqueBonus, periciaNome: periciasConfig.find(p => p.key === ataque.pericia)?.label || "",
-            isDano: true, critico10,
+            isDano: true, critico10, tooltipDanoDetalhado,
         });
     };
 
@@ -2000,6 +2002,24 @@ const FichaPersonagem = () => {
 
     const payloadRef = useRef(null);
 
+    const salvarAgora = async (payload) => {
+        try {
+            await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}/salvar`, {
+                method: "PUT", credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+        } catch (e) { console.error("Erro ao salvar:", e); }
+    };
+
+    const handleVoltar = async () => {
+        clearTimeout(salvarTimer.current);
+        if (fichaCarregada.current && payloadRef.current) {
+            await salvarAgora(payloadRef.current);
+        }
+        navigate("/personagens");
+    };
+
     useEffect(() => {
         if (!fichaCarregada.current) return;
         // monta o objeto aqui dentro — garante que todos os valores são do mesmo render
@@ -2034,24 +2054,21 @@ const FichaPersonagem = () => {
         }, 1000);
     }, [id, nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata, nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila, recursos, historico, coldreLongo, coldreCurto, ataquesCombate, coldresSlots]);
 
-    // salva imediatamente ao sair da página — evita perder dados com navegação rápida
+    // salva ao fechar aba / dar reload — keepalive garante que o browser completa o request
     useEffect(() => {
-        return () => {
+        const handleBeforeUnload = () => {
+            if (!fichaCarregada.current || !payloadRef.current) return;
             clearTimeout(salvarTimer.current);
-            if (fichaCarregada.current && payloadRef.current) {
-                navigator.sendBeacon
-                    ? navigator.sendBeacon(
-                        `${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}/salvar`,
-                        new Blob([JSON.stringify(payloadRef.current)], { type: "application/json" })
-                      )
-                    : fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}/salvar`, {
-                        method: "PUT", credentials: "include",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payloadRef.current),
-                        keepalive: true,
-                      }).catch(() => {});
-            }
+            fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}/salvar`, {
+                method: "PUT",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payloadRef.current),
+                keepalive: true,
+            }).catch(() => {});
         };
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
@@ -2119,14 +2136,14 @@ const FichaPersonagem = () => {
     if (!ficha || ficha.error) return (
         <div className="ficha-loading-page">
             <p className="ficha-loading-text">Ficha não encontrada.</p>
-            <button className="ficha-voltar-btn" onClick={() => navigate("/personagens")}>← VOLTAR</button>
+            <button className="ficha-voltar-btn" onClick={handleVoltar}>← VOLTAR</button>
         </div>
     );
 
     return (
         <div className="ficha-page">
             <div className="ficha-topbar">
-                <button className="ficha-voltar-btn" onClick={() => navigate("/personagens")}>← VOLTAR</button>
+                <button className="ficha-voltar-btn" onClick={handleVoltar}>← VOLTAR</button>
             </div>
             <div className="ficha-sheet">
                 <div className="ficha-identidade">
