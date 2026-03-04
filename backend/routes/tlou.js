@@ -273,7 +273,7 @@ router.put("/fichas/:id/salvar", async (req, res) => {
     coleta, sobrevivencia, manutencao, medicina,
     dados_pericias, habilidades_compradas, itens_mochila,
     recursos_fabricacao, coldre_longo, coldre_curto,
-    historico_rolagens,
+    historico_rolagens, ataques_combate, coldres_slots,
   } = req.body;
   try {
     const user = await getUserId(req.session.google_id);
@@ -303,6 +303,8 @@ router.put("/fichas/:id/salvar", async (req, res) => {
         coldre_longo          = ?,
         coldre_curto          = ?,
         historico_rolagens    = ?,
+        ataques_combate       = ?,
+        coldres_slots         = ?,
         atualizado_em         = NOW()
       WHERE id = ? AND user_id = ?
     `, [nome_personagem, nome_jogador, vida_atual, vida_maxima, pilulas, sucata,
@@ -310,6 +312,7 @@ router.put("/fichas/:id/salvar", async (req, res) => {
         coleta, sobrevivencia, manutencao, medicina, dados_pericias || null,
         habilidades_compradas || null, itens_mochila || null, recursos_fabricacao || null,
         coldre_longo ? 1 : 0, coldre_curto ? 1 : 0, historico_rolagens || null,
+        ataques_combate || null, coldres_slots || null,
         parseInt(req.params.id), user.id]);
     res.json({ ok: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
