@@ -52,12 +52,15 @@ router.post("/login", async (req, res) => {
     const u = user[0];
     req.session.google_id = u.google_id;
 
-    res.json({
-      id: u.id,
-      google_id: u.google_id,
-      name: u.name,
-      email: u.email,
-      picture: u.custom_picture || u.picture,
+    req.session.save((err) => {
+      if (err) return res.status(500).json({ error: "Erro ao salvar sessão" });
+      res.json({
+        id: u.id,
+        google_id: u.google_id,
+        name: u.name,
+        email: u.email,
+        picture: u.custom_picture || u.picture,
+      });
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
