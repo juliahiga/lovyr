@@ -12,6 +12,8 @@ const allowedOrigins = [
   "https://grimo.vercel.app",
 ];
 
+app.set("trust proxy", 1);
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
