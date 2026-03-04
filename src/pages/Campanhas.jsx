@@ -57,9 +57,9 @@ const ModalDeletarCampanha = ({ campanha, onConfirmar, onCancelar }) => {
 const CampanhaCard = ({ c, onDeletar }) => {
   const navigate = useNavigate();
   // jogadores sem contar o mestre
-  const totalJogadores = c.sou_mestre
-    ? c.total_jogadores
-    : c.total_jogadores;
+  //const totalJogadores = c.sou_mestre
+  //  ? c.total_jogadores
+  //    : c.total_jogadores;
 
   return (
     <div

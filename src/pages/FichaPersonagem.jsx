@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/FichaPersonagem.css";
 
@@ -397,7 +397,10 @@ const parsearFormula = (formula) => {
     let bonus = 0;
     if (resto) {
         try {
-            bonus = Math.round(Function(`"use strict"; return (${resto})`)());
+            // safely parse simple arithmetic like +3 or -2
+            const match = resto.match(/^([+-]\d+(?:\.\d+)?)$/);
+            if (!match) return null;
+            bonus = Math.round(parseFloat(match[1]));
             if (!isFinite(bonus)) return null;
         } catch { return null; }
     }

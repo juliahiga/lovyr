@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import "../styles/Personagens.css";
@@ -151,7 +151,7 @@ const Personagens = () => {
     else setModalSistema(true);
   };
 
-  const buscarPersonagens = () => {
+  const buscarPersonagens = useCallback(() => {
     if (!user) return;
     setCarregando(true);
     fetch("http://localhost:3001/api/tlou/fichas", { credentials: "include" })
@@ -159,11 +159,11 @@ const Personagens = () => {
       .then((data) => setPersonagens(Array.isArray(data) ? data : []))
       .catch(() => setPersonagens([]))
       .finally(() => setCarregando(false));
-  };
+  }, [user]);
 
   useEffect(() => {
     buscarPersonagens();
-  }, [user]);
+  }, [buscarPersonagens]);
 
   const handleDeletar = async (p) => {
     try {
