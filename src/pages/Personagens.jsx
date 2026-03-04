@@ -154,7 +154,7 @@ const Personagens = () => {
   const buscarPersonagens = useCallback(() => {
     if (!user) return;
     setCarregando(true);
-    fetch("http://localhost:3001/api/tlou/fichas", { credentials: "include" })
+    fetch("${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setPersonagens(Array.isArray(data) ? data : []))
       .catch(() => setPersonagens([]))
@@ -167,7 +167,7 @@ const Personagens = () => {
 
   const handleDeletar = async (p) => {
     try {
-      await fetch(`http://localhost:3001/api/tlou/fichas/${p.id}`, {
+      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${p.id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -180,7 +180,7 @@ const Personagens = () => {
 
   const handleDuplicar = async (p) => {
     try {
-      const res = await fetch(`http://localhost:3001/api/tlou/fichas/${p.id}/duplicar`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${p.id}/duplicar`, {
         method: "POST",
         credentials: "include",
       });

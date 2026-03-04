@@ -128,7 +128,7 @@ const Campanhas = () => {
 
   const buscarCampanhas = () => {
     setCarregando(true);
-    fetch("http://localhost:3001/api/tlou/campanhas", { credentials: "include" })
+    fetch("${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/campanhas", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setCampanhas(Array.isArray(data) ? data : []))
       .catch(() => setCampanhas([]))
@@ -144,7 +144,7 @@ const Campanhas = () => {
   const handleDeletar = async () => {
     if (!modalDeletar) return;
     try {
-      await fetch(`http://localhost:3001/api/tlou/campanhas/${modalDeletar.id}`, {
+      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/campanhas/${modalDeletar.id}`, {
         method: "DELETE",
         credentials: "include",
       });

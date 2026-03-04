@@ -1151,7 +1151,7 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
     useEffect(() => {
         const prev = document.body.style.overflow;
         document.body.style.overflow = "hidden";
-        fetch("http://localhost:3001/api/tlou/loja", { credentials: "include" })
+        fetch("${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/loja", { credentials: "include" })
             .then(r => r.json()).then(d => setLojaData(d)).catch(() => setLojaData(null)).finally(() => setCarregando(false));
         return () => { document.body.style.overflow = prev || ""; };
     }, []);
@@ -1994,13 +1994,13 @@ const FichaPersonagem = () => {
         clearTimeout(salvarTimer.current);
         salvarTimer.current = setTimeout(async () => {
             try {
-                await fetch(`http://localhost:3001/api/tlou/fichas/${id}/salvar`, { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(estadoAtual.current) });
+                await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}/salvar`, { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(estadoAtual.current) });
             } catch (e) { console.error("Erro ao salvar:", e); }
         }, 1000);
     }, [id, nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata, nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila, recursos, historico, coldreLongo, coldreCurto]);
 
     useEffect(() => {
-        fetch(`http://localhost:3001/api/tlou/fichas/${id}`, { credentials: "include" })
+        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}`, { credentials: "include" })
             .then(r => r.json())
             .then(data => {
                 setFicha(data);
