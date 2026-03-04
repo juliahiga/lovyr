@@ -4,7 +4,7 @@ import "../styles/NovaCampanhaTlouRpg.css";
 import { useUser } from "../context/UserContext";
 
 const NovaCampanhaTLOU = () => {
-  const { user } = useUser();
+  useUser();
   const navigate = useNavigate();
 
   const [nome, setNome]                   = useState("");

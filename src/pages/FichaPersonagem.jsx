@@ -650,6 +650,7 @@ const ModalNovoAtaque = ({ onConfirmar, onFechar, ataqueInicial }) => {
             anotacoesRef.current.innerHTML = ataqueInicial.anotacoes;
         }
         return () => { document.body.style.overflow = prev || ""; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const set = (k, v) => setNovo(p => ({ ...p, [k]: v }));
@@ -1996,7 +1997,7 @@ const FichaPersonagem = () => {
                 await fetch(`http://localhost:3001/api/tlou/fichas/${id}/salvar`, { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(estadoAtual.current) });
             } catch (e) { console.error("Erro ao salvar:", e); }
         }, 1000);
-    }, [nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata, nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila, recursos, historico, coldreLongo, coldreCurto]);
+    }, [id, nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata, nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila, recursos, historico, coldreLongo, coldreCurto]);
 
     useEffect(() => {
         fetch(`http://localhost:3001/api/tlou/fichas/${id}`, { credentials: "include" })
