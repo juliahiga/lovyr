@@ -1,18 +1,18 @@
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
+const MySQLStore = require("express-mysql-session")(session);
 require("dotenv").config();
 const usersRouter = require("./routes/users");
 const tlouRouter = require("./routes/tlou");
 
 const app = express();
+app.set("trust proxy", 1);
 
 const allowedOrigins = [
   "http://localhost:3000",
   "https://grimo.vercel.app",
 ];
-
-app.set("trust proxy", 1);
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -29,11 +29,21 @@ app.use(cors({
 
 app.use(express.json({ limit: "10mb" }));
 
+const sessionStore = new MySQLStore({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT || 3306,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  ssl: { rejectUnauthorized: false },
+});
+
 app.use(session({
   name: "grimo.sid",
   secret: process.env.SESSION_SECRET || "grimo-secret-key",
   resave: false,
   saveUninitialized: false,
+  store: sessionStore,
   cookie: {
     httpOnly: true,
     secure: true,
