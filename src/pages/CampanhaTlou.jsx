@@ -298,7 +298,7 @@ const ModalSairCampanha = ({ onConfirmar, onCancelar }) => {
 /* ── Página principal ── */
 const CampanhaTlou = () => {
   const { id } = useParams();
-  const { user } = useUser();
+  //const { user } = useUser();
   const navigate = useNavigate();
 
   const [campanha, setCampanha] = useState(null);
