@@ -454,7 +454,7 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
             setCadencia(item._arma.cadencia    || extrairCampo(item.descricao, "Taxa de Fogo") || extrairCampo(item.descricao, "Durabilidade"));
             setPerfuracao(item._arma.perfuracao || extrairCampo(item.descricao, "Perfuração"));
         }
-    }, [armasEquipadas, idSelecionado]);
+    }, [armasEquipadas, idSelecionado]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const extrairCampo = (descricao, chave) => {
         if (!descricao) return "";
