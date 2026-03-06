@@ -80,7 +80,7 @@ router.post("/fichas", async (req, res) => {
 router.get("/fichas/:id", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
   try {
-    const user = await getUserId(req.session.google_id);
+    const user = await getUserId(req.session.google_id, req.session);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
     const [rows] = await pool.query(`
       SELECT f.*, n.nome AS nivel, n.pilulas_iniciais, n.equipamentos_iniciais, n.armas_iniciais,
@@ -93,8 +93,17 @@ router.get("/fichas/:id", async (req, res) => {
       JOIN tlou_personalidades      p ON f.personalidade_id = p.id
       JOIN tlou_tracos              t ON f.traco_id = t.id
       JOIN tlou_motivacoes          m ON f.motivacao_id = m.id
-      WHERE f.id = ? AND f.user_id = ?
-    `, [req.params.id, user.id]);
+      WHERE f.id = ?
+        AND (
+          f.user_id = ?
+          OR EXISTS (
+            SELECT 1 FROM tlou_campanha_jogadores cj
+            JOIN tlou_campanhas camp ON cj.campanha_id = camp.id
+            WHERE cj.ficha_id = f.id
+              AND (cj.user_id = ? OR camp.user_id_mestre = ?)
+          )
+        )
+    `, [req.params.id, user.id, user.id, user.id]);
     if (rows.length === 0) return res.status(404).json({ error: "Ficha não encontrada" });
     res.json(rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -185,25 +194,36 @@ router.delete("/campanhas/:id", async (req, res) => {
 });
 
 router.get("/campanhas/:id", async (req, res) => {
-  if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
   try {
-    const user = await getUserId(req.session.google_id);
-    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
     const [campanhaRows] = await pool.query(`
       SELECT c.*, c.image AS imagem
       FROM tlou_campanhas c
       WHERE c.id = ?
     `, [req.params.id]);
     if (campanhaRows.length === 0) return res.status(404).json({ error: "Campanha não encontrada" });
+
     const [jogadores] = await pool.query(`
-      SELECT cj.id, cj.user_id, cj.nome_jogador, cj.nome_personagem, cj.entrou_em,
-        f.vida_atual, f.vida_maxima, f.pilulas, cl.nome AS classe
+      SELECT cj.id, cj.user_id, cj.ficha_id, cj.nome_jogador, cj.nome_personagem, cj.entrou_em,
+        f.vida_atual, f.vida_maxima, f.pilulas, f.imagem, cl.nome AS classe,
+        u.picture
       FROM tlou_campanha_jogadores cj
       JOIN tlou_fichas f ON cj.ficha_id = f.id
       JOIN tlou_classes cl ON f.classe_id = cl.id
+      LEFT JOIN users u ON cj.user_id = u.id
       WHERE cj.campanha_id = ? ORDER BY cj.entrou_em ASC
     `, [req.params.id]);
-    res.json({ ...campanhaRows[0], sou_mestre: campanhaRows[0].user_id_mestre === user.id, jogadores });
+
+    let sou_mestre = false;
+    let sou_membro = false;
+    if (req.session.google_id) {
+      const user = await getUserId(req.session.google_id, req.session);
+      if (user) {
+        sou_mestre = campanhaRows[0].user_id_mestre === user.id;
+        sou_membro = jogadores.some(j => j.user_id === user.id);
+      }
+    }
+
+    res.json({ ...campanhaRows[0], sou_mestre, sou_membro, jogadores });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

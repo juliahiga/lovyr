@@ -25,6 +25,7 @@ function App() {
             <Route path="/ficha/:id" element={<FichaPersonagem />} />
             <Route path="/campanhas" element={<Campanhas />} />
             <Route path="/campanha/:id" element={<CampanhaTlou />} />
+            <Route path="/entrar-campanha/:id" element={<CampanhaTlou />} />
             <Route path="/sistemas" element={<Sistemas />} />
             <Route path="/perfil" element={<Profile />} />
             <Route path="/novo-tlourpg" element={<NovoTlouRpg />} />

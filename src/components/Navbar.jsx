@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logoVerde from "../assets/verde.png";
 import "../styles/Navbar.css";
@@ -45,9 +45,13 @@ const Navbar = () => {
     flow: "implicit",
   });
 
+  // Usa ref para armazenar login sem causar re-renders
+  const loginRef = useRef(login);
+  loginRef.current = login;
+
   useEffect(() => {
-    loginTriggerRef.current = login;
-  }, [login, loginTriggerRef]);
+    loginTriggerRef.current = () => loginRef.current();
+  }, [loginTriggerRef]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -58,6 +62,16 @@ const Navbar = () => {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  const handleLogout = useCallback(async () => {
+    await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/users/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+    setMenuOpen(false);
+    setUser(null);
+    navigate("/");
+  }, [navigate, setUser]);
 
   return (
     <>
@@ -92,15 +106,7 @@ const Navbar = () => {
                   </button>
                   <button
                     onMouseDown={(e) => e.stopPropagation()}
-                    onClick={async () => {
-                      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/users/logout`, {
-                        method: "POST",
-                        credentials: "include",
-                      });
-                      setMenuOpen(false);
-                      navigate("/");
-                      setUser(null);
-                    }}
+                    onClick={handleLogout}
                   >
                     Deslogar
                   </button>
@@ -108,7 +114,7 @@ const Navbar = () => {
               )}
             </div>
           ) : (
-            <button className="login-btn" onClick={() => login()}>LOGIN</button>
+            <button className="login-btn" onClick={() => loginRef.current()}>LOGIN</button>
           )}
         </div>
       </header>

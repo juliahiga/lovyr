@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
-//import { useUser } from "../context/UserContext";
+import { useUser } from "../context/UserContext";
 import "../styles/CampanhaTlou.css";
 
 const API = process.env.REACT_APP_API_URL || "http://localhost:3001";
@@ -298,7 +298,7 @@ const ModalSairCampanha = ({ onConfirmar, onCancelar }) => {
 /* ── Página principal ── */
 const CampanhaTlou = () => {
   const { id } = useParams();
-  //const { user } = useUser();
+  const { user, triggerLogin } = useUser();
   const navigate = useNavigate();
 
   const [campanha, setCampanha] = useState(null);
@@ -321,6 +321,14 @@ const CampanhaTlou = () => {
   }, [id, navigate]);
 
   useEffect(() => { buscarCampanha(); }, [buscarCampanha]);
+
+  // Re-busca quando o usuário faz login (para atualizar sou_mestre/sou_membro)
+  useEffect(() => { if (user) buscarCampanha(); }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleEntrarCampanha = () => {
+    if (!user) { triggerLogin(); return; }
+    setModalAddPersonagem(true);
+  };
 
   const handleSalvarFoto = async (novaImagem) => {
     if (!novaImagem) { setModalFoto(false); return; }
@@ -362,6 +370,8 @@ const CampanhaTlou = () => {
   if (!campanha) return null;
 
   const sou_mestre = campanha.sou_mestre;
+  const sou_membro = campanha.sou_membro;
+  const visitante  = !sou_mestre && !sou_membro;
   const jogadores = campanha.jogadores || [];
   const personagens = jogadores;
 
@@ -369,7 +379,11 @@ const CampanhaTlou = () => {
     <div className="ct-page">
       {/* ── Barra de ações ── */}
       <div className="ct-acoes-bar">
-        {sou_mestre ? (
+        {visitante ? (
+          <button className="ct-acao-btn ct-acao-entrar" onClick={handleEntrarCampanha}>
+            <i className="fa-solid fa-right-to-bracket" /> Entrar na Campanha
+          </button>
+        ) : sou_mestre ? (
           <>
             <button className="ct-acao-btn" onClick={() => setModalFoto(true)}>
               <i className="fa-solid fa-image" /> Foto de Capa

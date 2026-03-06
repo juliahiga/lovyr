@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/FichaPersonagem.css";
 
@@ -408,7 +408,7 @@ const parsearFormula = (formula) => {
 };
 
 // ── ARMASLOT com suporte a armas equipadas da mochila ──
-const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRef, dadosRef, isMelee = false, onRolar, slotData = {}, onSlotChange }) => {
+const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRef, dadosRef, isMelee = false, onRolar, slotData = {}, onSlotChange, durabilidadeBonus = 0 }) => {
     const [dano,          setDanoLocal]     = useState(slotData.dano          ?? "");
     const [bonusDano,     setBonusDanoLocal]= useState(slotData.bonusDano     ?? "");
     const [pente,         setPenteLocal]    = useState(slotData.pente         ?? "");
@@ -417,8 +417,10 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
     const [perfuracao,    setPerfuracaoLocal]=useState(slotData.perfuracao    ?? "");
     const [nomeManual,    setNomeManualLocal]=useState(slotData.nomeManual    ?? "");
     const [idSelecionado, setIdSelecionadoLocal]=useState(slotData.idSelecionado ?? null);
+    // tracks which fields have been manually edited after auto-population
+    const camposEditados = useRef({});
 
-    // helpers que atualizam local E notificam pai
+    // helpers que atualizam local E notificam pai — uso exclusivo de ações do usuário
     const notify = (patch) => { if (onSlotChange) onSlotChange(patch); };
     const setDano       = v => { setDanoLocal(v);        notify({ dano: v }); };
     const setBonusDano  = v => { setBonusDanoLocal(v);   notify({ bonusDano: v }); };
@@ -428,6 +430,12 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
     const setPerfuracao = v => { setPerfuracaoLocal(v);  notify({ perfuracao: v }); };
     const setNomeManual = v => { setNomeManualLocal(v);  notify({ nomeManual: v }); };
     const setIdSelecionado = v => { setIdSelecionadoLocal(v); notify({ idSelecionado: v }); };
+    // user-editable setters (mark field as manually edited)
+    const setDanoUser       = v => { camposEditados.current.dano = true;       setDano(v); };
+    const setPenteUser      = v => { camposEditados.current.pente = true;      setPente(v); };
+    const setCapacidadeUser = v => { camposEditados.current.capacidade = true; setCapacidade(v); };
+    const setCadenciaUser   = v => { camposEditados.current.cadencia = true;   setCadencia(v); };
+    const setPerfuracaoUser = v => { camposEditados.current.perfuracao = true; setPerfuracao(v); };
     const [dropAberto,    setDropAberto]    = useState(false);
     const dropRef = useRef(null);
 
@@ -441,18 +449,24 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
         if (!idSelecionado) return;
         const item = armasEquipadas.find(a => a.id === idSelecionado);
         if (!item) {
-            setIdSelecionado(null);
-            setNomeManual("");
-            setDano(""); setPente(""); setCapacidade(""); setCadencia(""); setPerfuracao("");
+            // Limpa apenas state local — sem notify para não disparar loop
+            setIdSelecionadoLocal(null);
+            setNomeManualLocal("");
+            setDanoLocal(""); setPenteLocal(""); setCapacidadeLocal("");
+            setCadenciaLocal(""); setPerfuracaoLocal("");
+            camposEditados.current = {};
+            // Notifica o pai uma única vez
+            if (onSlotChange) onSlotChange({ idSelecionado: null, nomeManual: "", dano: "", pente: "", capacidade: "", cadencia: "", perfuracao: "" });
             return;
         }
+        // Atualiza apenas state local (sem notify) para não disparar loop
         if (item._arma) {
-            setDano(item._arma.dano         || extrairCampo(item.descricao, "Dano"));
+            if (!camposEditados.current.dano)       setDanoLocal(item._arma.dano         || extrairCampo(item.descricao, "Dano"));
             const cap = item._arma.capacidade || extrairCampo(item.descricao, "Capacidade");
-            setPente(cap);
-            setCapacidade(cap);
-            setCadencia(item._arma.cadencia    || extrairCampo(item.descricao, "Taxa de Fogo") || extrairCampo(item.descricao, "Durabilidade"));
-            setPerfuracao(item._arma.perfuracao || extrairCampo(item.descricao, "Perfuração"));
+            if (!camposEditados.current.pente)      setPenteLocal(cap);
+            if (!camposEditados.current.capacidade) setCapacidadeLocal(cap);
+            if (!camposEditados.current.cadencia)   setCadenciaLocal(item._arma.cadencia    || extrairCampo(item.descricao, "Taxa de Fogo") || extrairCampo(item.descricao, "Durabilidade"));
+            if (!camposEditados.current.perfuracao) setPerfuracaoLocal(item._arma.perfuracao || extrairCampo(item.descricao, "Perfuração"));
         }
     }, [armasEquipadas, idSelecionado]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -469,6 +483,7 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
     };
 
     const selecionarArma = (item) => {
+        camposEditados.current = {}; // reset — fresh selection fills all fields
         setIdSelecionadoLocal(item.id);
         setNomeManualLocal(item.nome);
         let novoDano = "", novoCap = "", novoCadencia = "", novoPerfuracao = "";
@@ -490,6 +505,7 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
     };
 
     const limpar = () => {
+        camposEditados.current = {};
         setIdSelecionado(null);
         setNomeManual("");
         setDano(""); setBonusDano(""); setPente(""); setCapacidade(""); setCadencia(""); setPerfuracao("");
@@ -607,7 +623,7 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
                 </div>
                 <div className="ficha-arma-field ficha-arma-small">
                     <span className="ficha-field-label">DANO</span>
-                    <input className="ficha-input" value={dano} onChange={e => setDano(e.target.value)}/>
+                    <input className="ficha-input" value={dano} onChange={e => setDanoUser(e.target.value)}/>
                 </div>
                 <div className="ficha-arma-field" style={{minWidth:54,maxWidth:70}}>
                     <span className="ficha-field-label" style={{color:"#C79255"}}>BÔNUS</span>
@@ -618,26 +634,40 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
                 {!isMelee && <>
                     <div className="ficha-arma-field ficha-arma-small">
                         <span className="ficha-field-label">PENTE</span>
-                        <input className="ficha-input" value={pente} onChange={e => { setPente(e.target.value); setCapacidade(e.target.value); }} />
+                        <input className="ficha-input" value={pente} onChange={e => { setPenteUser(e.target.value); setCapacidadeUser(e.target.value); }} />
                     </div>
                     <div className="ficha-arma-field ficha-arma-small">
                         <span className="ficha-field-label">CAPACIDADE</span>
-                        <input className="ficha-input" value={capacidade} onChange={e => { setCapacidade(e.target.value); setPente(e.target.value); }} />
+                        <input className="ficha-input" value={capacidade} onChange={e => { setCapacidadeUser(e.target.value); setPenteUser(e.target.value); }} />
                     </div>
                     <div className="ficha-arma-field ficha-arma-medium">
                         <span className="ficha-field-label">CADÊNCIA DE TIRO</span>
-                        <input className="ficha-input" value={cadencia} onChange={e => setCadencia(e.target.value)} />
+                        <input className="ficha-input" value={cadencia} onChange={e => setCadenciaUser(e.target.value)} />
                     </div>
                 </>}
                 {isMelee && <>
                     <div className="ficha-arma-field ficha-arma-small">
                         <span className="ficha-field-label">DURABILIDADE</span>
-                        <input className="ficha-input" value={cadencia} onChange={e => setCadencia(e.target.value)} />
+                        <input
+                            className="ficha-input"
+                            value={(() => {
+                                if (durabilidadeBonus <= 0 || cadencia === "") return cadencia;
+                                const numMatch = cadencia.match(/^(\d+)(.*)/);
+                                if (numMatch) {
+                                    const base = parseInt(numMatch[1], 10);
+                                    const resto = numMatch[2]; // e.g. " golpes"
+                                    return `${base + durabilidadeBonus}${resto}`;
+                                }
+                                return cadencia;
+                            })()}
+                            onChange={e => setCadenciaUser(e.target.value)}
+                            title={durabilidadeBonus > 0 && cadencia !== "" ? `Base: ${cadencia} | Durável: +${durabilidadeBonus}` : undefined}
+                        />
                     </div>
                 </>}
                 <div className="ficha-arma-field ficha-arma-medium">
                     <span className="ficha-field-label">PERFURAÇÃO DA ARMA</span>
-                    <input className="ficha-input" value={perfuracao} onChange={e => setPerfuracao(e.target.value)} />
+                    <input className="ficha-input" value={perfuracao} onChange={e => setPerfuracaoUser(e.target.value)} />
                 </div>
                 <button
                     className="ficha-btn-rolar"
@@ -923,19 +953,29 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
     const rolarAtaque = ataque => {
         const bonusAtual = bonusRef?.current ?? bonus;
         const dadosAtual = dadosRef?.current ?? dados;
-        const m = (ataque.dano || "1d4").match(/(\d+)[dD](\d+)/);
-        let danoVal = 0, dadoDano = (ataque.dano || "1d4").toUpperCase();
+        const strDano = (ataque.dano || "1d4").trim().toUpperCase().replace(/\s/g, "");
+        let danoVal = 0;
         const rolls = [];
-        if (m) {
-            const q = parseInt(m[1]), f = parseInt(m[2]);
+        const partesDano = [];
+        const dadoRegexAtq = /([0-9]*)D([0-9]+)/g;
+        let mAtq;
+        let processadoAtq = strDano;
+        while ((mAtq = dadoRegexAtq.exec(strDano)) !== null) {
+            const q = parseInt(mAtq[1] || "1", 10);
+            const f = parseInt(mAtq[2], 10);
             for (let i = 0; i < q; i++) {
                 const r = Math.floor(Math.random() * f) + 1;
                 rolls.push(r);
                 danoVal += r;
             }
-        } else {
-            danoVal = 1; rolls.push(1);
+            processadoAtq = processadoAtq.replace(mAtq[0], "");
+            partesDano.push(`${q}D${f}[${rolls.slice(-q).join(", ")}]`);
         }
+        if (rolls.length === 0) { danoVal = 1; rolls.push(1); }
+        const bonusEmbutidoAtqMatch = processadoAtq.replace(/\s/g, "").match(/^([+-][0-9]+)$/);
+        const bonusEmbutidoAtq = bonusEmbutidoAtqMatch ? parseInt(bonusEmbutidoAtqMatch[1], 10) : 0;
+        danoVal += bonusEmbutidoAtq;
+        const dadoDano = strDano;
         const bonusPericia = parseInt(bonusAtual?.[ataque.pericia], 10) || 0;
         const ataqueBonus = parseInt(ataque.ataqueBonus, 10) || 0;
         const dadoPericia = dadosAtual?.[ataque.pericia] ?? "D10";
@@ -945,8 +985,10 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
         const danoComBonus = danoVal + ataqueBonus;
         const critico10 = rolagemAtaque === facesPericia;
         const danoFinal = critico10 ? danoComBonus * 2 : danoComBonus;
-        // monta tooltip de dano: ex "1D8[5, 3] +2"
-        const tooltipDanoDetalhado = `${dadoDano}[${rolls.join(", ")}]${ataqueBonus !== 0 ? ` ${ataqueBonus >= 0 ? "+" : ""}${ataqueBonus}` : ""}`;
+        // monta tooltip de dano: ex "1D8[5] + 1D4[3] +2"
+        let tooltipDanoDetalhado = partesDano.join(" + ");
+        if (bonusEmbutidoAtq !== 0) tooltipDanoDetalhado += ` ${bonusEmbutidoAtq >= 0 ? "+" : ""}${bonusEmbutidoAtq}`;
+        if (ataqueBonus !== 0) tooltipDanoDetalhado += ` ${ataqueBonus >= 0 ? "+" : ""}${ataqueBonus}`;
         onRolar({
             label: ataque.nome, danoRolls: rolls, dado: dadoDano, valorDado: danoVal,
             bonus: ataqueBonus, total: danoFinal, ataqueTotal, rolagemAtaque, dadoPericia,
@@ -1991,9 +2033,9 @@ const FichaPersonagem = () => {
         if (!fichaCarregada.current) return;
         setVidaMax(vidaMaxDeHabilidades);
     }, [vidaMaxDeHabilidades]); // eslint-disable-line react-hooks/exhaustive-deps
-    const bonus = Object.fromEntries(
+    const bonus = useMemo(() => Object.fromEntries(
         periciasConfig.map(p => [p.key, (parseInt(bonusBase[p.key], 10) || 0) + (bonusDeHabilidades[p.key] || 0)])
-    );
+    ), [bonusBase, bonusDeHabilidades]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ref sempre atualizada — evita closure stale em callbacks de rolagem
     const bonusRef = useRef(bonus);
@@ -2001,11 +2043,25 @@ const FichaPersonagem = () => {
     useEffect(() => { bonusRef.current = bonus; }, [bonus]);
     useEffect(() => { dadosRef.current = dados; }, [dados]);
 
-    const armasEquipadasLonga = itensMochila.filter(i => i.equipado && i.categoria === "Arma" && (i._arma?.tipoArma === "longa" || !i._arma));
-    const armasEquipadasCurta = itensMochila.filter(i => i.equipado && i.categoria === "Arma" && i._arma?.tipoArma === "pistola");
-    const armasEquipadasMelee = itensMochila.filter(i => i.equipado && i.categoria === "Arma" && i._arma?.tipoArma === "melee");
+    const onSlotChangeLonga      = useCallback(p => setColdresSlots(prev => ({...prev, longa:       {...prev.longa,       ...p}})), []);
+    const onSlotChangeCurta      = useCallback(p => setColdresSlots(prev => ({...prev, curta:       {...prev.curta,       ...p}})), []);
+    const onSlotChangeColdreLonga= useCallback(p => setColdresSlots(prev => ({...prev, coldre_longa:{...prev.coldre_longa,...p}})), []);
+    const onSlotChangeColdreCurta= useCallback(p => setColdresSlots(prev => ({...prev, coldre_curta:{...prev.coldre_curta,...p}})), []);
+    const onSlotChangeMelee      = useCallback(p => setColdresSlots(prev => ({...prev, melee:       {...prev.melee,       ...p}})), []);
+    const armasEquipadasLonga = useMemo(() => itensMochila.filter(i => i.equipado && i.categoria === "Arma" && (i._arma?.tipoArma === "longa" || !i._arma)), [itensMochila]);
+    const armasEquipadasCurta = useMemo(() => itensMochila.filter(i => i.equipado && i.categoria === "Arma" && i._arma?.tipoArma === "pistola"), [itensMochila]);
+    const armasEquipadasMelee = useMemo(() => itensMochila.filter(i => i.equipado && i.categoria === "Arma" && i._arma?.tipoArma === "melee"), [itensMochila]);
 
     const payloadRef = useRef(null);
+
+    // Mantém historicoRef sempre atual — incluído no save de saída sem disparar autosave
+    const historicoRef = useRef(historico);
+    useEffect(() => {
+        historicoRef.current = historico;
+        if (payloadRef.current) {
+            payloadRef.current = { ...payloadRef.current, historico_rolagens: JSON.stringify(historico) };
+        }
+    }, [historico]);
 
     const salvarAgora = async (payload) => {
         try {
@@ -2027,7 +2083,6 @@ const FichaPersonagem = () => {
 
     useEffect(() => {
         if (!fichaCarregada.current) return;
-        // monta o objeto aqui dentro — garante que todos os valores são do mesmo render
         const payload = {
             nome_personagem: nomePersonagem, nome_jogador: nomeJogador,
             vida_atual: vidaAtual, vida_maxima: vidaMax,
@@ -2056,8 +2111,8 @@ const FichaPersonagem = () => {
                     body: JSON.stringify(payload),
                 });
             } catch (e) { console.error("Erro ao salvar:", e); }
-        }, 1000);
-    }, [id, nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata, nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila, recursos, historico, coldreLongo, coldreCurto, ataquesCombate, coldresSlots]);
+        }, 1500);
+    }, [id, nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata, nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila, recursos, coldreLongo, coldreCurto, ataquesCombate, coldresSlots]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // salva ao fechar aba / dar reload — keepalive garante que o browser completa o request
     useEffect(() => {
@@ -2123,16 +2178,38 @@ const FichaPersonagem = () => {
         const dado = dados[key] ?? "D10";
         const bv = parseInt(bonus[key], 10) || 0;
         const v = rolarDado(dado);
-        const entrada = { personagem: nomePersonagemRef.current || nomePersonagem, label, dado, valorDado: v, bonus: bv, total: v + bv, timestamp: makeTimestamp() };
+
+        // Corrida de Adrenalina: vida <= 10 → dado extra baseado no tier
+        const tierAdr = compradosGlobal["adr"] ?? 0;
+        const DADO_ADR = ["", "D4", "D6", "D8"];
+        let adrBonus = 0, adrRoll = null, adrDado = null;
+        if (tierAdr > 0 && vidaAtual <= 10) {
+            adrDado = DADO_ADR[tierAdr] || "D4";
+            adrRoll = rolarDado(adrDado);
+            adrBonus = adrRoll;
+        }
+
+        const totalFinal = v + bv + adrBonus;
+        const formulaResto = adrRoll !== null ? `+${bv !== 0 ? bv + "+" : ""}[${adrRoll}]` : undefined;
+        const entrada = {
+            personagem: nomePersonagemRef.current || nomePersonagem,
+            label,
+            dado,
+            valorDado: v,
+            bonus: bv,
+            total: totalFinal,
+            timestamp: makeTimestamp(),
+            ...(adrRoll !== null ? { formulaResto: `${bv !== 0 ? (bv >= 0 ? "+" : "") + bv + " +" : "+"}(${adrDado})[${adrRoll}]` } : {}),
+        };
         setResultado(entrada);
         setHistorico(h => [...h.slice(-99), entrada]);
     };
 
-    const handleRolarComHistorico = (entrada) => {
+    const handleRolarComHistorico = useCallback((entrada) => {
         const entradaComData = { ...entrada, personagem: nomePersonagemRef.current || nomePersonagem, timestamp: makeTimestamp() };
         setResultado(entradaComData);
         setHistorico(h => [...h.slice(-99), entradaComData]);
-    };
+    }, [nomePersonagem]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleGastarPilulas = custo => setPilulas(p => String(Math.max(0, (parseInt(p, 10) || 0) - custo)));
     const handleDevolverPilulas = quantidade => setPilulas(p => String((parseInt(p, 10) || 0) + quantidade));
@@ -2212,21 +2289,21 @@ const FichaPersonagem = () => {
                             <div className="ficha-status-campo"><span className="ficha-field-label">NÍV. FERRAMENTA</span><input className="ficha-input ficha-status-input" value={nivFerramenta} onChange={e => setNivFerramenta(e.target.value)} /></div>
                             <div className="ficha-status-campo"><span className="ficha-field-label">REMÉDIO</span><input className="ficha-input ficha-status-input" value={medicinaVal} onChange={e => setMedicinaVal(e.target.value)} /></div>
                         </div>
-                        <ArmaSlot titulo="ARMA LONGA"  armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["longa"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,longa:{...prev.longa,...p}}))} />
-                        <ArmaSlot titulo="ARMA CURTA"  armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["curta"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,curta:{...prev.curta,...p}}))} />
+                        <ArmaSlot titulo="ARMA LONGA"  armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["longa"]||{}} onSlotChange={onSlotChangeLonga} />
+                        <ArmaSlot titulo="ARMA CURTA"  armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["curta"]||{}} onSlotChange={onSlotChangeCurta} />
                         {coldreLongo && (
                             <div className="ficha-coldre-slot-wrapper">
-                                <ArmaSlot titulo="COLDRE ARMA LONGA" armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["coldre_longa"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,coldre_longa:{...prev.coldre_longa,...p}}))} />
+                                <ArmaSlot titulo="COLDRE ARMA LONGA" armasEquipadas={armasEquipadasLonga} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["coldre_longa"]||{}} onSlotChange={onSlotChangeColdreLonga} />
                                 <button className="ficha-coldre-remover-btn" onClick={() => setColdreLongo(false)} title="Remover coldre">✕</button>
                             </div>
                         )}
                         {coldreCurto && (
                             <div className="ficha-coldre-slot-wrapper">
-                                <ArmaSlot titulo="COLDRE ARMA CURTA" armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["coldre_curta"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,coldre_curta:{...prev.coldre_curta,...p}}))} />
+                                <ArmaSlot titulo="COLDRE ARMA CURTA" armasEquipadas={armasEquipadasCurta} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} onRolar={handleRolarComHistorico} slotData={coldresSlots["coldre_curta"]||{}} onSlotChange={onSlotChangeColdreCurta} />
                                 <button className="ficha-coldre-remover-btn" onClick={() => setColdreCurto(false)} title="Remover coldre">✕</button>
                             </div>
                         )}
-                        <ArmaSlot titulo="MELEE" armasEquipadas={armasEquipadasMelee} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} isMelee onRolar={handleRolarComHistorico} slotData={coldresSlots["melee"]||{}} onSlotChange={p=>setColdresSlots(prev=>({...prev,melee:{...prev.melee,...p}}))} />
+                        <ArmaSlot titulo="MELEE" armasEquipadas={armasEquipadasMelee} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} isMelee onRolar={handleRolarComHistorico} slotData={coldresSlots["melee"]||{}} onSlotChange={onSlotChangeMelee} durabilidadeBonus={compradosGlobal["dur"] ?? 0} />
                         <div className="ficha-coldre-adicionar">
                             {!coldreLongo && <div className="ficha-coldre-item"><span className="ficha-coldre-label">Adicionar Coldre de Arma Longa</span><button className="ficha-coldre-btn" onClick={() => setColdreLongo(true)}>+</button></div>}
                             {!coldreCurto && <div className="ficha-coldre-item"><span className="ficha-coldre-label">Adicionar Coldre de Arma Curta</span><button className="ficha-coldre-btn" onClick={() => setColdreCurto(true)}>+</button></div>}

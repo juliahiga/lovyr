@@ -1,8 +1,8 @@
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 
 const UserContext = createContext();
 
-export const API_URL = process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:3001'}` ;
+export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 export const UserProvider = ({ children }) => {
   const [user, setUserState] = useState(null);
@@ -17,17 +17,17 @@ export const UserProvider = ({ children }) => {
       .finally(() => setLoading(false));
   }, []);
 
-  const setUser = (value) => {
+  const setUser = useCallback((value) => {
     if (typeof value === "function") {
       setUserState((prev) => value(prev));
     } else {
       setUserState(value);
     }
-  };
+  }, []);
 
-  const triggerLogin = () => {
+  const triggerLogin = useCallback(() => {
     if (loginTriggerRef.current) loginTriggerRef.current();
-  };
+  }, []);
 
   return (
     <UserContext.Provider value={{ user, setUser, loading, triggerLogin, loginTriggerRef }}>
