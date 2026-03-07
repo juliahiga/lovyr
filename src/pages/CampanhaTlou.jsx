@@ -166,9 +166,6 @@ const ModalConvidar = ({ campanhaId, onFechar }) => {
             </button>
           </div>
         </div>
-        <div className="ct-modal-footer">
-          <button className="ct-btn-salvar" onClick={onFechar}>Fechar</button>
-        </div>
       </div>
     </div>,
     document.getElementById("modal-root")
