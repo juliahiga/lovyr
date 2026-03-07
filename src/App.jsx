@@ -12,6 +12,7 @@ import NovoTlouRpg from "./pages/NovoTlouRpg";
 import NovaCampanhaTlouRpg from "./pages/NovaCampanhaTlouRpg";
 import FichaPersonagem from "./pages/FichaPersonagem";
 import CampanhaTlou from "./pages/CampanhaTlou";
+import EscudoMestre from "./pages/EscudoMestre";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/campanhas" element={<Campanhas />} />
             <Route path="/campanha/:id" element={<CampanhaTlou />} />
             <Route path="/entrar-campanha/:id" element={<CampanhaTlou />} />
+            <Route path="/escudo-mestre/:id" element={<EscudoMestre />} />
             <Route path="/sistemas" element={<Sistemas />} />
             <Route path="/perfil" element={<Profile />} />
             <Route path="/novo-tlourpg" element={<NovoTlouRpg />} />

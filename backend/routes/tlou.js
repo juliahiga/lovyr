@@ -85,7 +85,8 @@ router.get("/fichas/:id", async (req, res) => {
     const [rows] = await pool.query(`
       SELECT f.*, n.nome AS nivel, n.pilulas_iniciais, n.equipamentos_iniciais, n.armas_iniciais,
         c.nome AS classe, i.nome AS idade_surto, p.nome AS personalidade,
-        t.nome AS traco, m.descricao AS motivacao
+        t.nome AS traco, m.descricao AS motivacao,
+        cj.campanha_id, camp.nome AS campanha_nome
       FROM tlou_fichas f
       JOIN tlou_niveis_sobrevivente n ON f.nivel_sobrevivente_id = n.id
       JOIN tlou_classes             c ON f.classe_id = c.id
@@ -93,14 +94,16 @@ router.get("/fichas/:id", async (req, res) => {
       JOIN tlou_personalidades      p ON f.personalidade_id = p.id
       JOIN tlou_tracos              t ON f.traco_id = t.id
       JOIN tlou_motivacoes          m ON f.motivacao_id = m.id
+      LEFT JOIN tlou_campanha_jogadores cj ON cj.ficha_id = f.id
+      LEFT JOIN tlou_campanhas camp ON camp.id = cj.campanha_id
       WHERE f.id = ?
         AND (
           f.user_id = ?
           OR EXISTS (
-            SELECT 1 FROM tlou_campanha_jogadores cj
-            JOIN tlou_campanhas camp ON cj.campanha_id = camp.id
-            WHERE cj.ficha_id = f.id
-              AND (cj.user_id = ? OR camp.user_id_mestre = ?)
+            SELECT 1 FROM tlou_campanha_jogadores cj2
+            JOIN tlou_campanhas camp2 ON cj2.campanha_id = camp2.id
+            WHERE cj2.ficha_id = f.id
+              AND (cj2.user_id = ? OR camp2.user_id_mestre = ?)
           )
         )
     `, [req.params.id, user.id, user.id, user.id]);
@@ -205,7 +208,7 @@ router.get("/campanhas/:id", async (req, res) => {
     const [jogadores] = await pool.query(`
       SELECT cj.id, cj.user_id, cj.ficha_id, cj.nome_jogador, cj.nome_personagem, cj.entrou_em,
         f.vida_atual, f.vida_maxima, f.pilulas, f.imagem, cl.nome AS classe,
-        u.picture
+        COALESCE(u.custom_picture, u.picture) AS picture
       FROM tlou_campanha_jogadores cj
       JOIN tlou_fichas f ON cj.ficha_id = f.id
       JOIN tlou_classes cl ON f.classe_id = cl.id
@@ -330,6 +333,127 @@ router.put("/fichas/:id/salvar", async (req, res) => {
       ataques_combate || null, coldres_slots || null,
       parseInt(req.params.id), user.id]);
     res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+module.exports = router;
+// ─── ESCUDO DO MESTRE ─────────────────────────────────────────────────────────
+
+// GET /campanhas/:id/fichas — fichas completas dos jogadores (só mestre)
+router.get("/campanhas/:id/fichas", async (req, res) => {
+  if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
+  try {
+    const user = await getUserId(req.session.google_id);
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    const [campCheck] = await pool.query(
+      "SELECT id FROM tlou_campanhas WHERE id = ? AND user_id_mestre = ?",
+      [req.params.id, user.id]
+    );
+    if (campCheck.length === 0)
+      return res.status(403).json({ error: "Apenas o mestre pode acessar essa rota" });
+
+    const [rows] = await pool.query(`
+      SELECT
+        f.id, f.nome_personagem, f.nome_jogador,
+        f.vida_atual, f.vida_maxima,
+        f.pilulas, f.sucata, f.nivel_ferramenta,
+        f.brutalidade, f.mira, f.agilidade, f.instinto,
+        f.coleta, f.sobrevivencia, f.manutencao, f.medicina,
+        f.imagem,
+        u.name AS nome_usuario, u.picture AS avatar
+      FROM tlou_campanha_jogadores cj
+      JOIN tlou_fichas f ON cj.ficha_id = f.id
+      JOIN users u ON cj.user_id = u.id
+      WHERE cj.campanha_id = ?
+      ORDER BY cj.entrou_em ASC
+    `, [req.params.id]);
+
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// GET /campanhas/:id/rolagens — busca rolagens públicas da campanha (polling)
+router.get("/campanhas/:id/rolagens", async (req, res) => {
+  if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
+  try {
+    const user = await getUserId(req.session.google_id);
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    const [acesso] = await pool.query(`
+      SELECT 1 FROM tlou_campanhas WHERE id = ? AND user_id_mestre = ?
+      UNION
+      SELECT 1 FROM tlou_campanha_jogadores WHERE campanha_id = ? AND user_id = ?
+      LIMIT 1
+    `, [req.params.id, user.id, req.params.id, user.id]);
+    if (acesso.length === 0)
+      return res.status(403).json({ error: "Sem acesso a esta campanha" });
+
+    const sinceId = parseInt(req.query.since_id) || 0;
+
+    const [rows] = await pool.query(`
+      SELECT id, campanha_id, ficha_id, personagem, label,
+        valor_dado, bonus, total, ataque_total,
+        is_dano, critico_max, critico_min, hora, criado_em
+      FROM tlou_rolagens
+      WHERE campanha_id = ? AND id > ?
+      ORDER BY id DESC
+      LIMIT 100
+    `, [req.params.id, sinceId]);
+
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// POST /campanhas/:id/rolagens — salva uma rolagem pública na campanha
+router.post("/campanhas/:id/rolagens", async (req, res) => {
+  if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
+  const {
+    personagem, label,
+    valor_dado, bonus, total, ataque_total,
+    is_dano, critico_max, critico_min, hora,
+    ficha_id,
+  } = req.body;
+
+  if (!label || total === undefined)
+    return res.status(400).json({ error: "label e total são obrigatórios" });
+
+  try {
+    const user = await getUserId(req.session.google_id);
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+    const [acesso] = await pool.query(`
+      SELECT 1 FROM tlou_campanhas WHERE id = ? AND user_id_mestre = ?
+      UNION
+      SELECT 1 FROM tlou_campanha_jogadores WHERE campanha_id = ? AND user_id = ?
+      LIMIT 1
+    `, [req.params.id, user.id, req.params.id, user.id]);
+    if (acesso.length === 0)
+      return res.status(403).json({ error: "Sem acesso a esta campanha" });
+
+    const [result] = await pool.query(`
+      INSERT INTO tlou_rolagens
+        (campanha_id, ficha_id, user_id, personagem, label,
+         valor_dado, bonus, total, ataque_total,
+         is_dano, critico_max, critico_min, hora)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      req.params.id,
+      ficha_id || null,
+      user.id,
+      personagem || user.name,
+      label,
+      valor_dado ?? 0,
+      bonus ?? 0,
+      total,
+      ataque_total ?? null,
+      is_dano ? 1 : 0,
+      critico_max ? 1 : 0,
+      critico_min ? 1 : 0,
+      hora || null,
+    ]);
+
+    res.status(201).json({ id: result.insertId });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

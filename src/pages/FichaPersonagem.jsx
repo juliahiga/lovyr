@@ -3,15 +3,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../styles/FichaPersonagem.css";
 
 const periciasConfig = [
-    { key: "brutalidade", label: "Brutalidade" },
-    { key: "mira", label: "Mira" },
-    { key: "agilidade", label: "Agilidade" },
-    { key: "instinto", label: "Instinto" },
-    { key: "coleta", label: "Sucatear" },
-    { key: "sobrevivencia", label: "Sobrevivência" },
-    { key: "manutencao", label: "Mecânica" },
-    { key: "medicina", label: "Medicina" },
+    { key: "brutalidade", label: "Brutalidade",  desc: "Brutalidade é a habilidade que abrange o uso de armas corpo a corpo, agarrar ou dominar Infectados, e qualquer outro teste que envolva força física.\n\nTambém reflete a força de um Sobrevivente, podendo incluir levantar objetos pesados, quebrar restrições, mover destroços que bloqueiam portas e se puxar para cima. A habilidade Brutalidade é uma especialidade extremamente versátil para o sobrevivente resistente." },
+    { key: "mira",        label: "Mira",          desc: "Você mira pela visão, um Estalador entra no centro da sua mira. Tudo o que você precisa fazer é respirar fundo e apertar o gatilho.\n\nMira reflete a coordenação de um sobrevivente ao usar armas de fogo, arcos e itens arremessáveis. Quanto maior o modificador de Mira de um personagem, maior a chance de acertar o alvo." },
+    { key: "agilidade",   label: "Agilidade",     desc: "Uma patrulha inimiga te pega de surpresa e você imediatamente se abaixa. A única forma de sair vivo disso será determinada pelo seu próximo movimento.\n\nA habilidade Agilidade cobre tudo relacionado ao movimento de um sobrevivente, furtividade, tempo de reação, velocidade e acrobacias como escalar, rastejar por espaços apertados e saltar entre beiradas." },
+    { key: "instinto",    label: "Instinto",       desc: "Você entra em um prédio desconhecido. O que te espera lá dentro?\n\nInstinto funciona como a percepção de um sobrevivente, seu instinto de sobrevivência e sentidos. Com Instinto, personagens podem detectar perigos próximos, perceber emboscadas, sentir traições, patrulhas inimigas e Infectados vagando pela área. Quanto maior o Instinto, maior a consciência situacional nos encontros." },
+    { key: "coleta",      label: "Sucatear",       desc: "Você encontra o esquecido, vê o invisível, vai onde ninguém ousa ir.\n\nEssa habilidade determina quão eficazmente um sobrevivente procura suprimentos, munição, itens de criação, kits médicos, peças e pílulas. Sucatear também permite encontrar itens-chave como galões de gasolina, tábuas, escadas ou bilhetes com códigos, além de itens arremessáveis como garrafas ou tijolos." },
+    { key: "sobrevivencia", label: "Sobrevivência", desc: "A estrada é perigosa demais, talvez você tenha mais chance longe da cidade.\n\nA habilidade Sobrevivência ajuda personagens a manterem o rumo, se orientarem no ambiente e lerem mapas. Também dita habilidades de vida selvagem: construir abrigo, rastrear animais e inimigos, acender fogueiras, nadar e escalar rochas. Quanto maior o modificador, melhor o personagem se adapta ao ambiente." },
+    { key: "manutencao",  label: "Mecânica",       desc: "Você não vai chegar muito longe a pé. Você se pergunta se algum desses carros ainda pode ter gasolina.\n\nMecânica é crucial para reconstruir o mundo quebrado, operar máquinas, consertar geradores, ligar eletricidade, reparar veículos e eletrônicos. Um sobrevivente pode fazer qualquer coisa desde que tenha as peças certas. Manutenção afeta as chances de fazer algo funcionar e quão bem ele pode ser consertado." },
+    { key: "medicina",    label: "Medicina",       desc: "Entre seu grupo, um ferimento está infectado. Você administra os antibióticos.\n\nMedicina reflete o conhecimento médico do jogador em tratar ferimentos e traumas, além de familiaridade com doenças, enfermidades e infecções. Medicina pode ajudar a determinar quão antigos são ferimentos e qual nível de Infectados pode estar presente. Jogadores rolam Medicina ao usar kits de primeiros socorros, adicionando o total ao HP recebido." },
 ];
+
 
 const dadosOpcoes = ["D10", "D12"];
 
@@ -25,6 +26,18 @@ const HABILIDADE_PERICIA_MAP = {
     cur: "medicina",
     eng: "manutencao",
 };
+
+const MELHORIA_DADO_MAP = {
+    md_brut: "brutalidade",
+    md_mira: "mira",
+    md_inst: "instinto",
+    md_agil: "agilidade",
+    md_cole: "coleta",
+    md_sobr: "sobrevivencia",
+    md_medi: "medicina",
+    md_manu: "manutencao",
+};
+
 
 const calcularBonusDeHabilidades = (comprados) => {
     const delta = {};
@@ -164,6 +177,20 @@ const LOJA = {
             { id: "rel", nome: "Resiliência", desc: "Re-rolagens de dados uma vez por dia.", tiers: [{ custo: 30, efeito: "Uma Re-Rolagem" }, { custo: 60, efeito: "Duas Re-Rolagens" }, { custo: 90, efeito: "Três Re-Rolagens" }] },
         ],
     },
+    melhorias_dado: {
+        label: "Melhoria de Dado",
+        cor: "#a78bfa",
+        itens: [
+            { id: "md_brut", nome: "Caminho Difícil",  desc: "Aumenta o dado da perícia Brutalidade de D10 para D12.", tiers: [{ custo: 80, efeito: "Brutalidade: Dado passa a ser D12" }] },
+            { id: "md_mira", nome: "Precisão",          desc: "Aumenta o dado da perícia Mira de D10 para D12.",        tiers: [{ custo: 80, efeito: "Mira: Dado passa a ser D12" }] },
+            { id: "md_inst", nome: "Percepção",         desc: "Aumenta o dado da perícia Instinto de D10 para D12.",    tiers: [{ custo: 70, efeito: "Instinto: Dado passa a ser D12" }] },
+            { id: "md_agil", nome: "Resistência",       desc: "Aumenta o dado da perícia Agilidade de D10 para D12.",  tiers: [{ custo: 90, efeito: "Agilidade: Dado passa a ser D12" }] },
+            { id: "md_cole", nome: "Saqueador",         desc: "Aumenta o dado da perícia Sucatear de D10 para D12.",   tiers: [{ custo: 70, efeito: "Sucatear: Dado passa a ser D12" }] },
+            { id: "md_sobr", nome: "Explorador",        desc: "Aumenta o dado da perícia Sobrevivência de D10 para D12.", tiers: [{ custo: 60, efeito: "Sobrevivência: Dado passa a ser D12" }] },
+            { id: "md_medi", nome: "Médico",            desc: "Aumenta o dado da perícia Medicina de D10 para D12.",   tiers: [{ custo: 60, efeito: "Medicina: Dado passa a ser D12" }] },
+            { id: "md_manu", nome: "Conserto",          desc: "Aumenta o dado da perícia Mecânica de D10 para D12.",   tiers: [{ custo: 60, efeito: "Mecânica: Dado passa a ser D12" }] },
+        ],
+    },
     combate: {
         label: "Combate",
         cor: "#f87171",
@@ -204,7 +231,7 @@ const CampoEditavel = ({ valor, onSalvar, placeholder, className }) => {
     );
 };
 
-const DadoSelector = ({ valor, onChange }) => {
+const DadoSelector = ({ valor, onChange, opcoes }) => {
     const [aberto, setAberto] = useState(false);
     const ref = useRef(null);
     useEffect(() => {
@@ -217,7 +244,7 @@ const DadoSelector = ({ valor, onChange }) => {
             <div className="ficha-circulo ficha-circulo-dado" onClick={() => setAberto(v => !v)}>{valor}</div>
             {aberto && (
                 <div className="dado-dropdown">
-                    {dadosOpcoes.map(d => (
+                    {(opcoes || dadosOpcoes).map(d => (
                         <div key={d} className={`dado-opcao ${d === valor ? "dado-opcao-ativo" : ""}`} onClick={() => { onChange(d); setAberto(false); }}>{d}</div>
                     ))}
                 </div>
@@ -1122,13 +1149,20 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
     );
 };
 
-const AbaHabilidades = ({ pilulas, onGastarPilulas, onDevolverPilulas, compradosGlobal, onCompradosChange }) => {
+const AbaHabilidades = ({ pilulas, onGastarPilulas, onDevolverPilulas, compradosGlobal, onCompradosChange, dados, onDadosChange }) => {
     const [lojaAberta, setLojaAberta] = useState(false);
     const [expandidos, setExpandidos] = useState({});
     const [filtro, setFiltro] = useState("");
 
     const comprados = compradosGlobal;
-    const onComprar = (id, tier) => onCompradosChange(prev => ({ ...prev, [id]: tier }));
+    const onComprar = (id, tier) => {
+        onCompradosChange(prev => ({ ...prev, [id]: tier }));
+        // Se for melhoria de dado, atualiza o dado da perícia
+        const periciaKey = MELHORIA_DADO_MAP[id];
+        if (periciaKey && tier > 0 && onDadosChange) {
+            onDadosChange(prev => ({ ...prev, [periciaKey]: "D12" }));
+        }
+    };
 
     const adquiridas = [];
     Object.entries(LOJA).forEach(([, cat]) => {
@@ -1171,6 +1205,11 @@ const AbaHabilidades = ({ pilulas, onGastarPilulas, onDevolverPilulas, comprados
                                         onCompradosChange(prev => ({ ...prev, [item.id]: tierComprado - 1 }));
                                     } else {
                                         onCompradosChange(prev => { const next = { ...prev }; delete next[item.id]; return next; });
+                                        // Se era melhoria de dado, volta para D10
+                                        const periciaKey = MELHORIA_DADO_MAP[item.id];
+                                        if (periciaKey && onDadosChange) {
+                                            onDadosChange(prev => ({ ...prev, [periciaKey]: "D10" }));
+                                        }
                                     }
                                 }}>
                                 <i className="fas fa-trash" />
@@ -1198,17 +1237,104 @@ const AbaHabilidades = ({ pilulas, onGastarPilulas, onDevolverPilulas, comprados
 };
 
 const CATS_MOCHILA = [
-    { key: "armas", label: "Armas", cor: "#C79255" },
+    { key: "armas",  label: "Armas",    cor: "#C79255" },
     { key: "municoes", label: "Munições", cor: "#60a5fa" },
-    { key: "geral", label: "Geral", cor: "#a78bfa" },
+    { key: "geral",  label: "Geral",    cor: "#a78bfa" },
+    { key: "criar",  label: "Criar",    cor: "#f97316" },
 ];
 
-const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
+// ── CATÁLOGO DE CRIAÇÃO DE ARMAS (custo em sucata) ──
+const ARMAS_CRAFTAVEIS = [
+    // Pistolas / revólveres
+    { id: "cft_pistola",   nome: "Pistola",                  custo: 150,  tipo: "pistola", tipoArma: "pistola",
+      _arma: { tipoArma: "pistola", dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Arma curta padrão" },
+    { id: "cft_revolver",  nome: "Revólver",                 custo: 180,  tipo: "pistola", tipoArma: "pistola",
+      _arma: { tipoArma: "pistola", dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Revólver confiável" },
+    { id: "cft_magnum",    nome: "Magnum",                   custo: 250,  tipo: "pistola", tipoArma: "pistola",
+      _arma: { tipoArma: "pistola", dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Revólver de alto calibre" },
+    { id: "cft_shorty",    nome: "Shotgun Curta (Shorty)",   custo: 375,  tipo: "pistola", tipoArma: "pistola",
+      _arma: { tipoArma: "pistola", dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Espingarda compacta" },
+    { id: "cft_pistcaca",  nome: "Pistola de Caça",          custo: 340,  tipo: "pistola", tipoArma: "pistola",
+      _arma: { tipoArma: "pistola", dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Pistola de precisão para caça" },
+    // Rifles / longas
+    { id: "cft_riflecaca", nome: "Rifle de Caça",            custo: 240,  tipo: "longa",   tipoArma: "longa",
+      _arma: { tipoArma: "longa",   dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Rifle leve para caça" },
+    { id: "cft_espingbomba", nome: "Espingarda de Bombeamento", custo: 400, tipo: "longa", tipoArma: "longa",
+      _arma: { tipoArma: "longa",   dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Espingarda pump-action" },
+    { id: "cft_arco",      nome: "Arco",                     custo: 1954, tipo: "longa",   tipoArma: "longa",
+      _arma: { tipoArma: "longa",   dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Arco silencioso e preciso" },
+    { id: "cft_canoduplo", nome: "Espingarda de Cano Duplo", custo: 280,  tipo: "longa",   tipoArma: "longa",
+      _arma: { tipoArma: "longa",   dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Espingarda dupla" },
+    { id: "cft_frontier",  nome: "Rifle Frontier",           custo: 220,  tipo: "longa",   tipoArma: "longa",
+      _arma: { tipoArma: "longa",   dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Rifle básico de alavanca" },
+    { id: "cft_batalha",   nome: "Rifle de Batalha",         custo: 440,  tipo: "longa",   tipoArma: "longa",
+      _arma: { tipoArma: "longa",   dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Rifle militar pesado" },
+    { id: "cft_assalto",   nome: "Rifle de Assalto",         custo: 350,  tipo: "longa",   tipoArma: "longa",
+      _arma: { tipoArma: "longa",   dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Rifle automático" },
+    { id: "cft_semiauto",  nome: "Rifle Semi-Automático",    custo: 300,  tipo: "longa",   tipoArma: "longa",
+      _arma: { tipoArma: "longa",   dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Rifle semi-auto versátil" },
+    { id: "cft_tatica",    nome: "Espingarda Tática",        custo: 270,  tipo: "longa",   tipoArma: "longa",
+      _arma: { tipoArma: "longa",   dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Espingarda tática compacta" },
+    { id: "cft_sniper",    nome: "Rifle Sniper Militar",     custo: 520,  tipo: "longa",   tipoArma: "longa",
+      _arma: { tipoArma: "longa",   dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Sniper de longo alcance" },
+    { id: "cft_chamas",    nome: "Lança-Chamas",             custo: 360,  tipo: "longa",   tipoArma: "longa",
+      _arma: { tipoArma: "longa",   dano: "", capacidade: "", cadencia: "", perfuracao: "" },
+      descricao: "Projeta chamas em área" },
+    // Melee
+    { id: "cft_2x4",       nome: "Tábua de Madeira (2x4)",  custo: 50,   tipo: "melee",   tipoArma: "melee",
+      _arma: { tipoArma: "melee",   dano: "1D6", capacidade: "", cadencia: "1", perfuracao: "" },
+      descricao: "Tábua resistente" },
+    { id: "cft_martelo",   nome: "Martelo / Chave Inglesa",  custo: 75,   tipo: "melee",   tipoArma: "melee",
+      _arma: { tipoArma: "melee",   dano: "1D6", capacidade: "", cadencia: "1", perfuracao: "" },
+      descricao: "Ferramenta pesada" },
+    { id: "cft_pecabra",   nome: "Pé de Cabra",              custo: 100,  tipo: "melee",   tipoArma: "melee",
+      _arma: { tipoArma: "melee",   dano: "1D8", capacidade: "", cadencia: "1", perfuracao: "" },
+      descricao: "Barra de ferro pontiaguda" },
+    { id: "cft_cano",      nome: "Cano",                     custo: 130,  tipo: "melee",   tipoArma: "melee",
+      _arma: { tipoArma: "melee",   dano: "1D8", capacidade: "", cadencia: "1", perfuracao: "" },
+      descricao: "Cano metálico" },
+    { id: "cft_taco",      nome: "Taco de Beisebol",         custo: 150,  tipo: "melee",   tipoArma: "melee",
+      _arma: { tipoArma: "melee",   dano: "1D8", capacidade: "", cadencia: "1", perfuracao: "" },
+      descricao: "Taco de madeira reforçado" },
+    { id: "cft_marreta",   nome: "Marreta",                  custo: 180,  tipo: "melee",   tipoArma: "melee",
+      _arma: { tipoArma: "melee",   dano: "1D10", capacidade: "", cadencia: "1", perfuracao: "" },
+      descricao: "Marreta pesada de demolição" },
+    { id: "cft_canivete",  nome: "Canivete Automático",      custo: 450,  tipo: "melee",   tipoArma: "melee",
+      _arma: { tipoArma: "melee",   dano: "1D6", capacidade: "", cadencia: "2", perfuracao: "" },
+      descricao: "Canivete rápido e preciso" },
+    { id: "cft_machado",   nome: "Machado",                  custo: 200,  tipo: "melee",   tipoArma: "melee",
+      _arma: { tipoArma: "melee",   dano: "1D10", capacidade: "", cadencia: "1", perfuracao: "" },
+      descricao: "Machado afiado" },
+    { id: "cft_facao",     nome: "Facão",                    custo: 250,  tipo: "melee",   tipoArma: "melee",
+      _arma: { tipoArma: "melee",   dano: "1D8", capacidade: "", cadencia: "2", perfuracao: "" },
+      descricao: "Lâmina longa e pesada" },
+];
+
+const ModalLojaMochila = ({ onAdicionarItem, onFechar, sucata, onGastarSucata }) => {
     const [catAtiva, setCatAtiva] = useState("armas");
     const [busca, setBusca] = useState("");
     const [lojaData, setLojaData] = useState(null);
     const [carregando, setCarregando] = useState(true);
     const [expandidos, setExpandidos] = useState({});
+    const [toastCriar, setToastCriar] = useState(null);
+
+    const mostrarToastCriar = (msg, tipo = "ok") => { setToastCriar({ msg, tipo }); setTimeout(() => setToastCriar(null), 2500); };
+    const sucataDisp = parseInt(sucata, 10) || 0;
 
     useEffect(() => {
         const prev = document.body.style.overflow;
@@ -1279,6 +1405,29 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
         if (catAtiva === "municoes") return { id: Date.now(), nome: item.nome, categoria: "Munição", espacos: item.espacos ?? 1, descricao: item.descricao || "", equipado: false };
         const partes = [item.descricao, item.efeito].filter(Boolean);
         return { id: Date.now(), nome: item.nome, categoria: "Geral", espacos: "", descricao: partes.join(" | "), equipado: false };
+    };
+
+    const construirItemCraftado = (arma) => ({
+        id: Date.now(),
+        nome: arma.nome,
+        categoria: "Arma",
+        espacos: "",
+        descricao: arma.descricao || "",
+        equipado: false,
+        arma_db_id: null,
+        melhorias_disponiveis: [],
+        melhorias_aplicadas: [],
+        _arma: { ...arma._arma },
+    });
+
+    const handleCriar = (arma) => {
+        if (sucataDisp < arma.custo) {
+            mostrarToastCriar(`Sucata insuficiente! (${sucataDisp}/${arma.custo})`, "erro");
+            return;
+        }
+        onGastarSucata(arma.custo);
+        onAdicionarItem(construirItemCraftado(arma));
+        mostrarToastCriar(`${arma.nome} fabricada!`, "ok");
     };
 
     const renderArma = (item) => {
@@ -1364,6 +1513,78 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
         );
     };
 
+    const renderCriar = () => {
+        const BADGE_TIPO = {
+            pistola: { label: "PISTOLA", cor: "#60a5fa" },
+            longa:   { label: "LONGA",   cor: "#C79255" },
+            melee:   { label: "MELEE",   cor: "#f87171" },
+        };
+        const itensFiltrados = ARMAS_CRAFTAVEIS
+            .filter(a => a.nome.toLowerCase().includes(busca.toLowerCase()));
+
+        return (
+            <>
+                {/* Saldo de sucata — centralizado */}
+                <div className="criar-sucata-bar">
+                    <i className="fas fa-cogs" />
+                    <span className="criar-sucata-label">Sucata disponível:</span>
+                    <strong className={`criar-sucata-valor${sucataDisp <= 0 ? " vazio" : ""}`}>
+                        {sucataDisp}
+                    </strong>
+                </div>
+
+                {/* Lista de armas */}
+                {itensFiltrados.map(arma => {
+                    const pode = sucataDisp >= arma.custo;
+                    const badge = BADGE_TIPO[arma.tipo];
+                    return (
+                        <div key={arma.id} className={`loja-item criar-arma-item${!pode ? " bloqueada" : ""}`}>
+                            <div className="loja-item-header">
+                                <div style={{ width: 20, flexShrink: 0 }} />
+                                <div className="loja-item-info">
+                                    <div className="loja-item-nome-row">
+                                        <span className="loja-item-nome" style={{ color: pode ? "#C79255" : "#888" }}>
+                                            {arma.nome}
+                                        </span>
+                                        {badge && (
+                                            <span
+                                                className="criar-arma-badge"
+                                                style={{ color: badge.cor }}
+                                            >
+                                                {badge.label}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="criar-arma-custo">
+                                        <span className={`criar-arma-custo-valor${!pode ? " insuficiente" : ""}`}>
+                                            <i className="fas fa-cogs" style={{ marginRight: 4 }} />
+                                            {arma.custo} sucatas
+                                        </span>
+                                        {!pode && (
+                                            <span className="criar-arma-falta">
+                                                <i className="fas fa-lock" style={{ marginRight: 3 }} />
+                                                Faltam {arma.custo - sucataDisp}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <button
+                                    className="criar-btn-fabricar"
+                                    onClick={e => { e.stopPropagation(); handleCriar(arma); }}
+                                    title={pode ? `Fabricar por ${arma.custo} sucatas` : `Sucata insuficiente (${sucataDisp}/${arma.custo})`}
+                                    disabled={!pode}
+                                >
+                                    <i className="fas fa-hammer" />
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })}
+                {itensFiltrados.length === 0 && <p className="loja-vazio">Nenhuma arma encontrada.</p>}
+            </>
+        );
+    };
+
     return (
         <div className="loja-overlay" onClick={onFechar}>
             <div className="loja-modal" onClick={e => e.stopPropagation()}>
@@ -1380,11 +1601,18 @@ const ModalLojaMochila = ({ onAdicionarItem, onFechar }) => {
                     <i className="fas fa-search loja-busca-icon" />
                     <input className="loja-busca-input" placeholder="Buscar item..." value={busca} onChange={e => setBusca(e.target.value)} />
                 </div>
+                {toastCriar && (
+                    <div className={`loja-toast loja-toast-${toastCriar.tipo}`}>{toastCriar.msg}</div>
+                )}
                 <div className="loja-lista">
-                    {carregando && <p style={{ color: "#666", textAlign: "center", padding: "30px 0", fontFamily: "'Google Sans',sans-serif", fontSize: ".8rem" }}><i className="fas fa-spinner fa-spin" style={{ marginRight: 8 }} />Carregando...</p>}
-                    {!carregando && !lojaData && <p className="loja-vazio">Erro ao carregar itens.</p>}
-                    {!carregando && lojaData && filtrados.length === 0 && <p className="loja-vazio">Nenhum item encontrado.</p>}
-                    {!carregando && lojaData && filtrados.map(item => catAtiva === "armas" ? renderArma(item) : renderItemSimples(item))}
+                    {catAtiva === "criar" ? renderCriar() : (
+                        <>
+                            {carregando && <p style={{ color: "#666", textAlign: "center", padding: "30px 0", fontFamily: "'Google Sans',sans-serif", fontSize: ".8rem" }}><i className="fas fa-spinner fa-spin" style={{ marginRight: 8 }} />Carregando...</p>}
+                            {!carregando && !lojaData && <p className="loja-vazio">Erro ao carregar itens.</p>}
+                            {!carregando && lojaData && filtrados.length === 0 && <p className="loja-vazio">Nenhum item encontrado.</p>}
+                            {!carregando && lojaData && filtrados.map(item => catAtiva === "armas" ? renderArma(item) : renderItemSimples(item))}
+                        </>
+                    )}
                 </div>
             </div>
         </div>
@@ -1693,9 +1921,33 @@ const AbaMochila = ({ itens, setItens, sucata, onGastarSucata, nivFerramenta, re
 
     const mostrarToast = (msg, tipo = "ok") => { setToast({ msg, tipo }); setTimeout(() => setToast(null), 2500); };
 
-    const filtrados   = itens.filter(i => i.nome.toLowerCase().includes(filtro.toLowerCase()));
     const toggleEquip = id => setItens(p => p.map(i => i.id === id ? { ...i, equipado: !i.equipado } : i));
-    const adicionarDaLoja = item => setItens(p => [...p, { ...item, id: Date.now() }]);
+
+    // Itens não-arma são agrupados pelo nome (acumulativos)
+    const adicionarDaLoja = (item) => {
+        if (item.categoria !== "Arma") {
+            setItens(p => {
+                const existente = p.find(i => i.nome === item.nome && i.categoria !== "Arma");
+                if (existente) {
+                    return p.map(i => i.id === existente.id ? { ...i, quantidade: (i.quantidade || 1) + 1 } : i);
+                }
+                return [...p, { ...item, id: Date.now(), quantidade: 1 }];
+            });
+        } else {
+            setItens(p => [...p, { ...item, id: Date.now() }]);
+        }
+    };
+
+    const alterarQuantidade = (id, delta) => {
+        setItens(p => p.flatMap(i => {
+            if (i.id !== id) return [i];
+            const novaQtd = (i.quantidade || 1) + delta;
+            if (novaQtd <= 0) return [];
+            return [{ ...i, quantidade: novaQtd }];
+        }));
+    };
+
+    const filtrados = itens.filter(i => i.nome.toLowerCase().includes(filtro.toLowerCase()));
 
     const handleRecursoChange = (key, val) => {
         onRecursosChange(prev => ({ ...prev, [key]: val }));
@@ -1799,8 +2051,50 @@ const AbaMochila = ({ itens, setItens, sucata, onGastarSucata, nivFerramenta, re
                     <div className="aba-lista">
                         {filtrados.length === 0 && <p className="ficha-aba-vazio">Mochila vazia.</p>}
                         {filtrados.map(item => {
+                            const isArma = item.categoria === "Arma";
                             const temMelhorias = item.melhorias_disponiveis?.length > 0;
                             const melAplicadas = item.melhorias_aplicadas?.length || 0;
+                            const qtd = item.quantidade || 1;
+
+                            // ── Itens NÃO-ARMA: contador + descrição colapsável ──
+                            if (!isArma) {
+                                const temDesc = !!item.descricao;
+                                return (
+                                    <div key={item.id} className="aba-item aba-item-stack">
+                                        <div className="aba-item-header" onClick={() => temDesc && setExp(p => ({ ...p, [item.id]: !p[item.id] }))}>
+                                            {temDesc
+                                                ? <button className="aba-chevron"><i className={`fas fa-chevron-${exp[item.id] ? "up" : "down"}`} /></button>
+                                                : <div style={{ width: 20, flexShrink: 0 }} />
+                                            }
+                                            <div className="aba-item-info" style={{ flex: 1 }}>
+                                                <span className="aba-item-nome">{item.nome}</span>
+                                                <div className="aba-item-meta">
+                                                    <span className="aba-tag">Categoria: <strong>{item.categoria}</strong></span>
+                                                    {item.espacos > 0 && <span className="aba-tag">Espaços: <strong>{item.espacos * qtd}</strong></span>}
+                                                </div>
+                                            </div>
+                                            {/* Contador − qtd + */}
+                                            <div className="mochila-stack-contador">
+                                                <button className="mochila-stack-btn" onClick={e => { e.stopPropagation(); alterarQuantidade(item.id, -1); }}>−</button>
+                                                <span className="mochila-stack-qtd">{qtd}</span>
+                                                <button className="mochila-stack-btn" onClick={e => { e.stopPropagation(); alterarQuantidade(item.id, +1); }}>+</button>
+                                            </div>
+                                            <button title="Remover tudo" onClick={e => { e.stopPropagation(); setItens(p => p.filter(x => x.id !== item.id)); }} className="mochila-btn-remover-item">
+                                                <i className="fas fa-trash" />
+                                            </button>
+                                        </div>
+                                        {exp[item.id] && temDesc && (
+                                            <div className="ataque-expandido">
+                                                <div className="ataque-expandido-info">
+                                                    <span className="ataque-detalhe" style={{ color: "#aaa", fontStyle: "italic" }}>{item.descricao}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            }
+
+                            // ── Armas: layout completo com chevron, melhorias e checkbox ──
                             return (
                                 <div key={item.id} className="aba-item">
                                     <div className="aba-item-header" onClick={() => setExp(p => ({ ...p, [item.id]: !p[item.id] }))}>
@@ -1820,9 +2114,7 @@ const AbaMochila = ({ itens, setItens, sucata, onGastarSucata, nivFerramenta, re
                                                 <i className="fas fa-cogs" />
                                             </button>
                                         )}
-                                        <button title="Remover item" onClick={e => { e.stopPropagation(); setItens(p => p.filter(x => x.id !== item.id)); }}
-                                            className="mochila-btn-remover-item"
-                                        >
+                                        <button title="Remover item" onClick={e => { e.stopPropagation(); setItens(p => p.filter(x => x.id !== item.id)); }} className="mochila-btn-remover-item">
                                             <i className="fas fa-trash" />
                                         </button>
                                         <button className={`mochila-equip-btn ${item.equipado ? "mochila-equip-on" : ""}`} onClick={e => { e.stopPropagation(); toggleEquip(item.id); }} style={{ width: 28, height: 28 }}>
@@ -1859,7 +2151,7 @@ const AbaMochila = ({ itens, setItens, sucata, onGastarSucata, nivFerramenta, re
                             );
                         })}
                     </div>
-                    {lojaAberta && <ModalLojaMochila onAdicionarItem={adicionarDaLoja} onFechar={() => setLojaAberta(false)} />}
+                    {lojaAberta && <ModalLojaMochila onAdicionarItem={adicionarDaLoja} onFechar={() => setLojaAberta(false)} sucata={sucata} onGastarSucata={onGastarSucata} />}
                     {modalMelItem && (
                         <ModalMelhorias item={modalMelItem} sucata={sucata} nivFerramenta={nivFerramenta} onAplicar={aplicarMelhoria} onFechar={() => setModalMelItem(null)} />
                     )}
@@ -1947,6 +2239,31 @@ const PainelResultados = ({ historico, aberto, onFechar }) => {
 };
 
 // ── MODAL CONFIGURAÇÕES ──
+// ── MODAL DESCRIÇÃO DE PERÍCIA ──
+const ModalDescricaoPericia = ({ pericia, onFechar }) => {
+    useEffect(() => {
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = prev || ""; };
+    }, []);
+    if (!pericia) return null;
+    return (
+        <div className="pericia-desc-overlay" onClick={onFechar}>
+            <div className="pericia-desc-modal" onClick={e => e.stopPropagation()}>
+                <div className="pericia-desc-header">
+                    <h2 className="pericia-desc-titulo">{pericia.label}</h2>
+                    <button className="pericia-desc-fechar" onClick={onFechar}><i className="fas fa-times" /></button>
+                </div>
+                <div className="pericia-desc-body">
+                    {pericia.desc.split("\n\n").map((par, i) => (
+                        <p key={i} className={i === 0 ? "pericia-desc-intro" : "pericia-desc-texto"}>{par}</p>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const ModalConfiguracoes = ({ onFechar }) => {
     const [fichaPrivada, setFichaPrivada] = useState(false);
     const [mestreEdita, setMestreEdita] = useState(true);
@@ -2012,18 +2329,22 @@ const FichaPersonagem = () => {
     const [historico, setHistorico] = useState([]);
     const [painelAberto, setPainelAberto] = useState(false);
     const [modalConfig, setModalConfig] = useState(false);
+    const [periciaModal, setPericiaModal] = useState(null);
     const [itensMochila, setItensMochila] = useState([]);
     const [ataquesCombate, setAtaquesCombate] = useState([]);
     const [coldresSlots, setColdresSlots] = useState({});
+    const [dadoGeral, setDadoGeral] = useState("D6");
     // ── NOVO: recursos de fabricação ──
     const [recursos, setRecursos] = useState({
         fita: 0, garrafa: 0, trapos: 0, alcool: 0, lamina: 0, polvora: 0, explosivo: 0,
     });
 
     const salvarTimer = useRef(null);
+
     const fichaCarregada = useRef(false);
 
     const bonusDeHabilidades = calcularBonusDeHabilidades(compradosGlobal);
+
 
     // Vida máxima baseada na habilidade "vid": sem tier=25, tier1=50, tier2=75, tier3=100
     const VIDA_POR_TIER_VID = [25, 50, 75, 100];
@@ -2203,13 +2524,59 @@ const FichaPersonagem = () => {
         };
         setResultado(entrada);
         setHistorico(h => [...h.slice(-99), entrada]);
+
+        // Transmite rolagem para o Escudo do Mestre se estiver em campanha
+        if (ficha?.campanha_id) {
+            fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/campanhas/${ficha.campanha_id}/rolagens`, {
+                method: "POST", credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ficha_id: parseInt(id, 10),
+                    personagem: nomePersonagemRef.current || nomePersonagem,
+                    label,
+                    valor_dado: v,
+                    bonus: bv,
+                    total: totalFinal,
+                    is_dano: false,
+                    critico_max: v === parseInt(dado.replace("D",""), 10),
+                    critico_min: v === 1,
+                    hora: makeTimestamp().slice(-5),
+                }),
+            }).catch(() => {});
+        }
     };
 
     const handleRolarComHistorico = useCallback((entrada) => {
         const entradaComData = { ...entrada, personagem: nomePersonagemRef.current || nomePersonagem, timestamp: makeTimestamp() };
         setResultado(entradaComData);
         setHistorico(h => [...h.slice(-99), entradaComData]);
-    }, [nomePersonagem]); // eslint-disable-line react-hooks/exhaustive-deps
+
+        // Transmite rolagem para o Escudo do Mestre se estiver em campanha
+        if (ficha?.campanha_id) {
+            const facesPericia = parseInt((entradaComData.dadoPericia || entradaComData.dado || "D10").replace(/.*D/i, ""), 10) || 10;
+            fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/campanhas/${ficha.campanha_id}/rolagens`, {
+                method: "POST", credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ficha_id: parseInt(id, 10),
+                    personagem: entradaComData.personagem,
+                    label: entradaComData.label,
+                    valor_dado: entradaComData.valorDado ?? entradaComData.rolagemAtaque ?? 0,
+                    bonus: entradaComData.bonus ?? entradaComData.bonusPericia ?? 0,
+                    total: entradaComData.total,
+                    ataque_total: entradaComData.ataqueTotal ?? null,
+                    is_dano: !!entradaComData.isDano,
+                    critico_max: entradaComData.isDano
+                        ? entradaComData.rolagemAtaque === facesPericia
+                        : entradaComData.valorDado === facesPericia,
+                    critico_min: entradaComData.isDano
+                        ? entradaComData.rolagemAtaque === 1
+                        : entradaComData.valorDado === 1,
+                    hora: makeTimestamp().slice(-5),
+                }),
+            }).catch(() => {});
+        }
+    }, [nomePersonagem, ficha, id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleGastarPilulas = custo => setPilulas(p => String(Math.max(0, (parseInt(p, 10) || 0) - custo)));
     const handleDevolverPilulas = quantidade => setPilulas(p => String((parseInt(p, 10) || 0) + quantidade));
@@ -2262,7 +2629,7 @@ const FichaPersonagem = () => {
                                 <tbody>
                                     {periciasConfig.map(p => (
                                         <tr key={p.key}>
-                                            <td className="ficha-pericia-nome">{p.label}</td>
+                                            <td className="ficha-pericia-nome ficha-pericia-nome-clicavel" onClick={() => setPericiaModal(p)} title="Ver descrição">{p.label} <i className="fas fa-info-circle ficha-pericia-info-icon" /></td>
                                             <td className="ficha-pericia-bonus">
                                                 <div className="ficha-circulo" title={bonusDeHabilidades[p.key] ? `Base: ${parseInt(bonusBase[p.key],10)||0} + Habilidades: +${bonusDeHabilidades[p.key]} = ${bonus[p.key]}` : `Bônus: ${bonus[p.key]}`}>
                                                     <input className="ficha-circulo-input" type="number" min={0} value={bonus[p.key] ?? 0} onChange={e => setBonusBase(prev => ({ ...prev, [p.key]: Math.max(0, parseInt(e.target.value,10) - (bonusDeHabilidades[p.key]||0)) }))} />
@@ -2280,6 +2647,26 @@ const FichaPersonagem = () => {
                                     ))}
                                 </tbody>
                             </table>
+                            {/* ── DADO GERAL ── */}
+                            <div className="dado-geral-row">
+                                <span className="dado-geral-label">DADO</span>
+                                <DadoSelector
+                                    valor={dadoGeral}
+                                    onChange={setDadoGeral}
+                                    opcoes={["D4","D6","D8","D10","D12","D20"]}
+                                />
+                                <button
+                                    className="ficha-btn-rolar"
+                                    title={`Rolar ${dadoGeral}`}
+                                    onClick={() => {
+                                        const faces = parseInt(dadoGeral.replace("D",""), 10);
+                                        const v = Math.floor(Math.random() * faces) + 1;
+                                        handleRolarComHistorico({ label: dadoGeral, dado: dadoGeral, valorDado: v, bonus: 0, total: v });
+                                    }}
+                                >
+                                    <i className="fas fa-dice-d20 ficha-btn-rolar-icon" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div className="ficha-col-meio">
@@ -2311,6 +2698,12 @@ const FichaPersonagem = () => {
                     </div>
                 </div>
                 <div className="ficha-col-direita">
+                    {(ficha.campanha_id || ficha.campanha_nome) && (
+                        <button className="ficha-campanha-topbar" onClick={() => navigate(`/campanha/${ficha.campanha_id}`)}>
+                            <i className="fa-solid fa-map" style={{ fontSize: "0.7rem", color: "#666" }} />
+                            <span className="ficha-campanha-topbar-nome">{ficha.campanha_nome || `#${ficha.campanha_id}`}</span>
+                        </button>
+                    )}
                     <div className="ficha-identidade-abas">
                         <button className="ficha-aba-icone-btn" onClick={() => setPainelAberto(p => !p)} title="Histórico de rolagens">
                             <i className="fa-solid fa-book" />
@@ -2326,7 +2719,7 @@ const FichaPersonagem = () => {
                     </div>
                     <div className="ficha-aba-conteudo">
                         {abaAtiva === "combate"     && <AbaCombate onRolar={handleRolarComHistorico} bonus={bonus} dados={dados} bonusRef={bonusRef} dadosRef={dadosRef} ataques={ataquesCombate} setAtaques={setAtaquesCombate} />}
-                        {abaAtiva === "habilidades" && <AbaHabilidades pilulas={pilulas} onGastarPilulas={handleGastarPilulas} onDevolverPilulas={handleDevolverPilulas} compradosGlobal={compradosGlobal} onCompradosChange={setCompradosGlobal} />}
+                        {abaAtiva === "habilidades" && <AbaHabilidades pilulas={pilulas} onGastarPilulas={handleGastarPilulas} onDevolverPilulas={handleDevolverPilulas} compradosGlobal={compradosGlobal} onCompradosChange={setCompradosGlobal} dados={dados} onDadosChange={setDados} />}
                         {abaAtiva === "mochila"     && (
                             <AbaMochila
                                 itens={itensMochila}
@@ -2344,6 +2737,7 @@ const FichaPersonagem = () => {
             <ResultadoRolagem resultado={resultado} onFechar={() => setResultado(null)} />
             <PainelResultados historico={historico} aberto={painelAberto} onFechar={() => setPainelAberto(false)} />
             {modalConfig    && <ModalConfiguracoes onFechar={() => setModalConfig(false)} />}
+            {periciaModal && <ModalDescricaoPericia pericia={periciaModal} onFechar={() => setPericiaModal(null)} />}
         </div>
     );
 };

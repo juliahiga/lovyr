@@ -397,6 +397,9 @@ const CampanhaTlou = () => {
             <button className="ct-acao-btn" onClick={() => setModalEditar(true)}>
               <i className="fa-solid fa-pen" /> Editar Campanha
             </button>
+            <button className="ct-acao-btn" onClick={() => navigate(`/escudo-mestre/${id}`)}>
+              <i className="fa-solid fa-shield-halved" /> Escudo do Mestre
+            </button>
           </>
         ) : (
           <>
@@ -476,7 +479,9 @@ const CampanhaTlou = () => {
                 {jogadores.map((j) => (
                   <div key={j.id} className="ct-jogador-item">
                     <div className="ct-jogador-avatar">
-                      {j.nome_jogador?.[0]?.toUpperCase() || "?"}
+                      {j.picture
+                        ? <img src={j.picture} alt={j.nome_jogador} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                        : j.nome_jogador?.[0]?.toUpperCase() || "?"}
                     </div>
                     <div className="ct-jogador-info">
                       <div className="ct-jogador-nome">{j.nome_jogador}</div>
