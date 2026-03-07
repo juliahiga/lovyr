@@ -1,9 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import "../styles/ImageCropModal.css";
 
-// Prop `src` é opcional.
-// Se passada, pula a seleção de arquivo (uso na criação de personagem).
-// Se não passada, exibe o seletor normalmente (uso no perfil).
 const ImageCropModal = ({ onConfirm, onClose, src: externalSrc = null, title = "Foto de Perfil" }) => {
   const [imageSrc, setImageSrc] = useState(externalSrc);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });

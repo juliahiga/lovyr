@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
+import ImageCropModalCapa from "../components/ImageCropModalCapa";
 import { useUser } from "../context/UserContext";
 import "../styles/CampanhaTlou.css";
 
@@ -41,47 +42,7 @@ const PersonagemCard = ({ p }) => {
   );
 };
 
-/* ── Modal foto de capa ── */
-const ModalFotoCapa = ({ imagemAtual, onSalvar, onFechar }) => {
-  const [preview, setPreview] = useState(imagemAtual || null);
-  const [imagem, setImagem] = useState(null);
-  const fileRef = useRef(null);
 
-  const handleFile = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => { setImagem(ev.target.result); setPreview(ev.target.result); };
-    reader.readAsDataURL(file);
-  };
-
-  return createPortal(
-    <div className="ct-overlay" onClick={onFechar}>
-      <div className="ct-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="ct-modal-header">
-          <h3 className="ct-modal-titulo">Foto de Capa</h3>
-          <button className="ct-modal-fechar" onClick={onFechar}>✕</button>
-        </div>
-        <div className="ct-modal-body">
-          {preview ? (
-            <img src={preview} alt="capa" className="ct-capa-preview" />
-          ) : (
-            <div className="ct-capa-placeholder">Sem imagem</div>
-          )}
-          <button className="ct-btn-secundario" onClick={() => fileRef.current?.click()}>
-            📁 Escolher imagem
-          </button>
-          <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
-        </div>
-        <div className="ct-modal-footer">
-          <button className="ct-btn-cancelar" onClick={onFechar}>Cancelar</button>
-          <button className="ct-btn-salvar" onClick={() => onSalvar(imagem)}>Salvar</button>
-        </div>
-      </div>
-    </div>,
-    document.getElementById("modal-root")
-  );
-};
 
 /* ── Modal editar campanha ── */
 const ModalEditarCampanha = ({ campanha, onSalvar, onFechar }) => {
@@ -165,6 +126,9 @@ const ModalConvidar = ({ campanhaId, onFechar }) => {
               {copiado ? "✓ Copiado!" : "Copiar"}
             </button>
           </div>
+        </div>
+        <div className="ct-modal-footer">
+          <button className="ct-btn-salvar" onClick={onFechar}>Fechar</button>
         </div>
       </div>
     </div>,
@@ -328,7 +292,7 @@ const CampanhaTlou = () => {
   };
 
   const handleSalvarFoto = async (novaImagem) => {
-    if (!novaImagem) { setModalFoto(false); return; }
+    if (!novaImagem) return;
     await fetch(`${API}/api/tlou/campanhas/${id}`, {
       method: "PUT",
       credentials: "include",
@@ -473,8 +437,16 @@ const CampanhaTlou = () => {
               <p className="ct-empty-text">Ainda não há jogadores nesta campanha!</p>
             ) : (
               <div className="ct-jogadores-lista">
-                {jogadores.map((j) => (
-                  <div key={j.id} className="ct-jogador-item">
+                {/* Agrupa personagens pelo mesmo jogador (user_id) */}
+                {Object.values(
+                  jogadores.reduce((acc, j) => {
+                    const uid = j.user_id;
+                    if (!acc[uid]) acc[uid] = { ...j, personagens: [] };
+                    acc[uid].personagens.push({ id: j.ficha_id, nome: j.nome_personagem });
+                    return acc;
+                  }, {})
+                ).map((j) => (
+                  <div key={j.user_id} className="ct-jogador-item">
                     <div className="ct-jogador-avatar">
                       {j.picture
                         ? <img src={j.picture} alt={j.nome_jogador} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
@@ -482,7 +454,13 @@ const CampanhaTlou = () => {
                     </div>
                     <div className="ct-jogador-info">
                       <div className="ct-jogador-nome">{j.nome_jogador}</div>
-                      <div className="ct-jogador-personagem">{j.nome_personagem}</div>
+                      <div className="ct-jogador-personagens">
+                        {j.personagens.map((p, i) => (
+                          <span key={p.id} className="ct-jogador-personagem-tag">
+                            {p.nome}{i < j.personagens.length - 1 ? ", " : ""}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -494,10 +472,10 @@ const CampanhaTlou = () => {
 
       {/* ── Modais ── */}
       {modalFoto && (
-        <ModalFotoCapa
-          imagemAtual={campanha.imagem}
-          onSalvar={handleSalvarFoto}
-          onFechar={() => setModalFoto(false)}
+        <ImageCropModalCapa
+          onConfirm={handleSalvarFoto}
+          onClose={() => setModalFoto(false)}
+          title="Foto de Capa"
         />
       )}
       {modalEditar && (

@@ -24,7 +24,7 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  gap: 24px;
+  gap: 25px;
   padding: 8px 2rem;
   box-sizing: border-box;
   flex-wrap: wrap;
@@ -505,4 +505,37 @@
   .ct-capa-section { flex-direction: column; }
   .ct-capa-img, .ct-capa-placeholder-grande { width: 100%; height: 200px; }
   .ct-acoes-bar { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding: 14px 1rem; }
+}
+
+/* ── PERSONAGENS LISTA alinhamento ── */
+.personagens-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+/* ── JOGADOR com múltiplos personagens ── */
+.ct-jogador-personagens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.ct-jogador-personagem-tag {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 12px;
+  color: #C79255;
+  font-style: italic;
+}
+
+/* ── CROP MODAL CAPA (proporção 3:2) ── */
+.modal-box-capa {
+  width: 720px !important;
+  max-width: 95vw !important;
+}
+
+.modal-box-capa .modal-body {
+  height: 420px !important;
 }

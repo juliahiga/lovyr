@@ -348,7 +348,7 @@ const EscudoMestre = () => {
             const novos = data.filter(r => !existingIds.has(r.id));
             if (novos.length === 0) return prev;
             setUltimoUpdate(new Date());
-            return [...novos.reverse(), ...prev].slice(0, 100);
+            return [...novos, ...prev].slice(0, 100);
           });
         }
       })

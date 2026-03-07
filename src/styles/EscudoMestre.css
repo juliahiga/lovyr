@@ -545,7 +545,7 @@
 }
 
 .em-add-dado-btn {
-  background: #7c3aed;
+  background: #C79255;
   border: none;
   color: #fff;
   font-size: 0.78rem;
@@ -556,7 +556,7 @@
   transition: background 0.15s;
   white-space: nowrap;
 }
-.em-add-dado-btn:hover { background: #6d28d9; }
+.em-add-dado-btn:hover { background: #C79255; }
 
 /* Campo rolagem rápida */
 .em-dado-formula-row {
@@ -616,7 +616,7 @@
   transition: all 0.15s;
 }
 .em-visib-btn:hover { color: #9a7a4a; }
-.em-visib-btn.ativo { background: #7c3aed; color: #fff; }
+.em-visib-btn.ativo { background: #C79255; color: #fff; }
 
 /* Lista de dados salvos */
 .em-dados-lista {

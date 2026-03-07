@@ -250,6 +250,20 @@ router.post("/campanhas/:id/entrar", async (req, res) => {
   }
 });
 
+// DELETE /campanhas/:id/sair — jogador sai da campanha
+router.delete("/campanhas/:id/sair", async (req, res) => {
+  if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
+  try {
+    const user = await getUserId(req.session.google_id);
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+    await pool.query(
+      "DELETE FROM tlou_campanha_jogadores WHERE campanha_id = ? AND user_id = ?",
+      [req.params.id, user.id]
+    );
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ─── REFERÊNCIAS ──────────────────────────────────────────────────────────────
 
 router.get("/referencias", async (req, res) => {
