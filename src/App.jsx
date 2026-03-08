@@ -10,9 +10,11 @@ import Sistemas from "./pages/Sistemas";
 import Profile from "./pages/Profile";
 import NovoTlouRpg from "./pages/NovoTlouRpg";
 import NovaCampanhaTlouRpg from "./pages/NovaCampanhaTlouRpg";
-import FichaPersonagem from "./pages/FichaPersonagem";
+import FichaPersonagemTlou   from "./pages/FichaPersonagemTlou";
+import FichaPersonagemNaruto from "./pages/FichaPersonagemNaruto";
 import CampanhaTlou from "./pages/CampanhaTlou";
 import EscudoMestre from "./pages/EscudoMestre";
+import NovoNaruto from "./pages/NovoNaruto";
 
 function App() {
   return (
@@ -23,7 +25,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/personagens" element={<Personagens />} />
-            <Route path="/ficha/:id" element={<FichaPersonagem />} />
+            <Route path="/naruto/ficha/:id" element={<FichaPersonagemNaruto />} />
+            <Route path="/ficha/:id"        element={<FichaPersonagemTlou />} />
             <Route path="/campanhas" element={<Campanhas />} />
             <Route path="/campanha/:id" element={<CampanhaTlou />} />
             <Route path="/entrar-campanha/:id" element={<CampanhaTlou />} />
@@ -32,6 +35,7 @@ function App() {
             <Route path="/perfil" element={<Profile />} />
             <Route path="/novo-tlourpg" element={<NovoTlouRpg />} />
             <Route path="/nova-campanha-tlourpg" element={<NovaCampanhaTlouRpg />} />
+            <Route path="/novo-naruto" element={<NovoNaruto />} />
           </Routes>
         </Router>
       </UserProvider>

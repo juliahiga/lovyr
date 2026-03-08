@@ -2,25 +2,21 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
-
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
-
-const usersRouter = require("./routes/users");
-const tlouRouter = require("./routes/tlou");
+const usersRouter  = require("./routes/users");
+const tlouRouter   = require("./routes/tlou");
+const narutoRouter = require("./routes/naruto");
 
 const app = express();
-
 app.set("trust proxy", 1);
-
 app.get("/", (req, res) => res.json({ status: "ok" }));
 
 const allowedOrigins = [
   "http://localhost:3000",
   "https://lovyr.vercel.app",
 ];
-
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
@@ -60,8 +56,9 @@ app.use(session({
   },
 }));
 
-app.use("/api/users", usersRouter);
-app.use("/api/tlou", tlouRouter);
+app.use("/api/users",  usersRouter);
+app.use("/api/tlou",   tlouRouter);
+app.use("/api/naruto", narutoRouter);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

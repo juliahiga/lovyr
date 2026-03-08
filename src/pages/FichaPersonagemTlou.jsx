@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import "../styles/FichaPersonagem.css";
+import "../styles/FichaPersonagemTlou.css";
 
 const periciasConfig = [
     { key: "brutalidade", label: "Brutalidade",  desc: "Brutalidade é a habilidade que abrange o uso de armas corpo a corpo, agarrar ou dominar Infectados, e qualquer outro teste que envolva força física.\n\nTambém reflete a força de um Sobrevivente, podendo incluir levantar objetos pesados, quebrar restrições, mover destroços que bloqueiam portas e se puxar para cima. A habilidade Brutalidade é uma especialidade extremamente versátil para o sobrevivente resistente." },
@@ -2304,7 +2304,7 @@ const ModalConfiguracoes = ({ onFechar }) => {
     );
 };
 
-const FichaPersonagem = () => {
+const FichaPersonagemTlou = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [ficha, setFicha] = useState(null);
@@ -2742,4 +2742,4 @@ const FichaPersonagem = () => {
     );
 };
 
-export default FichaPersonagem;
+export default FichaPersonagemTlou;
