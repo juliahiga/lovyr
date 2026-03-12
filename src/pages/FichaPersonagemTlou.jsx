@@ -50,9 +50,14 @@ const calcularBonusDeHabilidades = (comprados) => {
     return delta;
 };
 
+// Gerador criptograficamente seguro — elimina repetições/vieses do Math.random()
 const rolarDado = (dadoStr) => {
     const faces = parseInt(dadoStr.replace("D", ""), 10);
-    return Math.floor(Math.random() * faces) + 1;
+    if (!faces || faces < 2) return 1;
+    // Usa crypto.getRandomValues para garantir distribuição uniforme real
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return (array[0] % faces) + 1;
 };
 
 // ── RECURSOS DE FABRICAÇÃO ──
@@ -553,7 +558,7 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
             const qtd = parseInt(match[1] || "1", 10);
             const faces = parseInt(match[2], 10);
             const rollsGrupo = [];
-            for (let i = 0; i < qtd; i++) rollsGrupo.push(Math.floor(Math.random() * faces) + 1);
+            for (let i = 0; i < qtd; i++) rollsGrupo.push(rolarDado(`D${faces}`));
             const somaGrupo = rollsGrupo.reduce((a, b) => a + b, 0);
             totalDano += somaGrupo;
             processado = processado.replace(match[0], "");
@@ -569,10 +574,9 @@ const ArmaSlot = ({ titulo, armasEquipadas = [], bonus = {}, dados = {}, bonusRe
         if (bonusTotal !== 0) tooltipDanoStr += ` ${bonusTotal >= 0 ? "+" : ""}${bonusTotal}`;
         const dadoPericia  = (dadosRef?.current ?? dados)?.["mira"] ?? "D10";
         const bonusPericia = parseInt((bonusRef?.current ?? bonus)?.["mira"], 10) || 0;
-        const facesPericia = parseInt(dadoPericia.replace("D", ""), 10);
-        const rolagemAtaque = Math.floor(Math.random() * facesPericia) + 1;
+        const rolagemAtaque = rolarDado(dadoPericia);
         const ataqueTotal   = rolagemAtaque + bonusPericia;
-        const critico10     = rolagemAtaque === facesPericia;
+        const critico10     = rolagemAtaque === parseInt(dadoPericia.replace("D", ""), 10);
         const danoFinal     = critico10 ? totalDano * 2 : totalDano;
         if (onRolar) onRolar({
             label: nomeManual || titulo,
@@ -961,11 +965,10 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
         if (arremQtd <= 0) return;
         const bonusAtual = bonusRef?.current ?? bonus;
         const bonusPericia = parseInt(bonusAtual?.["mira"], 10) || 0;
-        const facesPericia = parseInt(dadoArremesso.replace("D", ""), 10);
-        const rolagemAtaque = Math.floor(Math.random() * facesPericia) + 1;
+        const rolagemAtaque = rolarDado(dadoArremesso);
         const ataqueTotal = rolagemAtaque + bonusPericia;
-        const critico10 = rolagemAtaque === facesPericia;
-        const danoRoll = Math.floor(Math.random() * 6) + 1;
+        const critico10 = rolagemAtaque === parseInt(dadoArremesso.replace("D", ""), 10);
+        const danoRoll = rolarDado("D4");
         const danoFinal = critico10 ? danoRoll * 2 : danoRoll;
         onRolar({
             label: "Tijolo/Garrafa",
@@ -992,7 +995,7 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
             const q = parseInt(mAtq[1] || "1", 10);
             const f = parseInt(mAtq[2], 10);
             for (let i = 0; i < q; i++) {
-                const r = Math.floor(Math.random() * f) + 1;
+                const r = rolarDado(`D${f}`);
                 rolls.push(r);
                 danoVal += r;
             }
@@ -1008,7 +1011,7 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
         const ataqueBonus = parseInt(ataque.ataqueBonus, 10) || 0;
         const dadoPericia = dadosAtual?.[ataque.pericia] ?? "D10";
         const facesPericia = parseInt(dadoPericia.replace("D", ""), 10);
-        const rolagemAtaque = Math.floor(Math.random() * facesPericia) + 1;
+        const rolagemAtaque = rolarDado(dadoPericia);
         const ataqueTotal = rolagemAtaque + bonusPericia;
         const danoComBonus = danoVal + ataqueBonus;
         const critico10 = rolagemAtaque === facesPericia;
@@ -1031,7 +1034,7 @@ const AbaCombate = ({ onRolar, bonus, dados, bonusRef, dadosRef, ataques, setAta
         setErro(false);
         const { qtd, faces, bonus: b, resto } = parsed;
         let soma = 0;
-        for (let i = 0; i < qtd; i++) soma += Math.floor(Math.random() * faces) + 1;
+        for (let i = 0; i < qtd; i++) soma += rolarDado(`D${faces}`);
         onRolar({ label: formula.trim().toUpperCase(), dado: `${qtd}D${faces}`, valorDado: soma, bonus: b, formulaResto: resto || null, total: soma + b });
     };
 
@@ -2702,8 +2705,7 @@ const FichaPersonagemTlou = () => {
                                     className="ficha-btn-rolar"
                                     title={`Rolar ${dadoGeral}`}
                                     onClick={() => {
-                                        const faces = parseInt(dadoGeral.replace("D",""), 10);
-                                        const v = Math.floor(Math.random() * faces) + 1;
+                                        const v = rolarDado(dadoGeral);
                                         handleRolarComHistorico({ label: dadoGeral, dado: dadoGeral, valorDado: v, bonus: 0, total: v });
                                     }}
                                 >
