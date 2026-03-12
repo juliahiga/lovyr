@@ -2412,7 +2412,13 @@ const FichaPersonagemTlou = () => {
     const handleVoltar = async () => {
         clearTimeout(salvarTimer.current);
         if (fichaCarregada.current && payloadRef.current) {
-            await salvarAgora(payloadRef.current);
+            // Verifica se a ficha ainda existe antes de salvar (evita recriar ficha deletada)
+            try {
+                const check = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}`, { credentials: "include" });
+                if (check.ok) {
+                    await salvarAgora(payloadRef.current);
+                }
+            } catch (e) { /* ignora — não salva se não conseguir verificar */ }
         }
         navigate("/personagens");
     };
@@ -2441,6 +2447,7 @@ const FichaPersonagemTlou = () => {
         payloadRef.current = payload; // sempre atualizado para o flush no unmount
         clearTimeout(salvarTimer.current);
         salvarTimer.current = setTimeout(async () => {
+            if (!componentMontado.current) return; // componente desmontado, não salva
             try {
                 await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}/salvar`, {
                     method: "PUT", credentials: "include",
@@ -2451,10 +2458,21 @@ const FichaPersonagemTlou = () => {
         }, 1500);
     }, [id, nomePersonagem, nomeJogador, vidaAtual, vidaMax, pilulas, sucata, nivFerramenta, medicinaVal, bonusBase, dados, compradosGlobal, itensMochila, recursos, coldreLongo, coldreCurto, ataquesCombate, coldresSlots]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Flag para suprimir saves após desmontagem (ex: deleção em outra aba)
+    const componentMontado = useRef(true);
+    useEffect(() => {
+        componentMontado.current = true;
+        return () => {
+            componentMontado.current = false;
+            clearTimeout(salvarTimer.current); // cancela autosave pendente ao desmontar
+        };
+    }, []);
+
     // salva ao fechar aba / dar reload — keepalive garante que o browser completa o request
     useEffect(() => {
         const handleBeforeUnload = () => {
             if (!fichaCarregada.current || !payloadRef.current) return;
+            if (!componentMontado.current) return;
             clearTimeout(salvarTimer.current);
             fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/fichas/${id}/salvar`, {
                 method: "PUT",
