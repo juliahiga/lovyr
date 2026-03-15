@@ -2,7 +2,6 @@ const express = require("express");
 const router  = express.Router();
 const { pool } = require("../db");
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
 async function getUserId(google_id) {
   const [rows] = await pool.query(
     "SELECT id, name FROM users WHERE google_id = ?",
@@ -11,7 +10,6 @@ async function getUserId(google_id) {
   return rows[0] || null;
 }
 
-// Ryos iniciais por NC — espelho do React (sem depender do banco)
 const RYOS_POR_NC = {
   4: 100, 5: 100, 6: 100,
   7: 1000, 8: 1000, 9: 1000,
@@ -21,17 +19,10 @@ const RYOS_POR_NC = {
   18: 88000, 19: 88000, 20: 88000,
 };
 
-// =============================================================================
-// REFERÊNCIAS  (lookup tables para popular os selects de criação)
-// =============================================================================
-
-// GET /api/naruto/referencias
 router.get("/referencias", async (req, res) => {
   try {
-    // naruto_clas.id é VARCHAR no banco real
     const [clas]       = await pool.query("SELECT id, nome, kekkei FROM naruto_clas ORDER BY nome");
     const [tendencias] = await pool.query("SELECT id, nome FROM naruto_tendencias ORDER BY id");
-    // naruto_niveis_campanha tem PK id INT e coluna nc separada
     const [niveis]     = await pool.query(
       "SELECT id, nc, nivel_shinobi, pontos_atributo, pontos_pericia, pontos_poder, atributo_minimo, dinheiro_inicial FROM naruto_niveis_campanha ORDER BY nc, id"
     );
@@ -41,11 +32,6 @@ router.get("/referencias", async (req, res) => {
   }
 });
 
-// =============================================================================
-// FICHAS
-// =============================================================================
-
-// GET /api/naruto/fichas  — lista fichas do usuário logado
 router.get("/fichas", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
   try {
@@ -73,7 +59,6 @@ router.get("/fichas", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// POST /api/naruto/fichas  — cria nova ficha
 router.post("/fichas", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
 
@@ -102,7 +87,6 @@ router.post("/fichas", async (req, res) => {
     );
     if (total >= 12) return res.status(400).json({ error: "Limite de 12 personagens atingido" });
 
-    // Resolve nc_id a partir do número nc (enviado pelo frontend) ou nc_id direto
     let nc_id = nc_id_raw;
     if (!nc_id && nc) {
       const [ncFind] = await pool.query(
@@ -113,7 +97,6 @@ router.post("/fichas", async (req, res) => {
       nc_id = ncFind[0].id;
     }
 
-    // Resolve cla_id: naruto_clas.id é VARCHAR (ex: "uchiha"), frontend manda cla = "uchiha"
     let cla_id = cla_id_raw;
     if (!cla_id && cla) {
       const [claFind] = await pool.query(
@@ -124,7 +107,6 @@ router.post("/fichas", async (req, res) => {
       cla_id = claFind[0].id;
     }
 
-    // Resolve tendencia_id: naruto_tendencias.id é VARCHAR (ex: "LB"), frontend manda tendencia = "LB"
     let tendencia_id = tendencia_id_raw;
     if (!tendencia_id && tendencia) {
       const [tendFind] = await pool.query(
@@ -135,14 +117,12 @@ router.post("/fichas", async (req, res) => {
       tendencia_id = tendFind[0].id;
     }
 
-    // Busca nc numérico e dinheiro_inicial para calcular energias e ryos
     const [ncRow] = await pool.query(
       "SELECT nc, dinheiro_inicial FROM naruto_niveis_campanha WHERE id = ?",
       [nc_id]
     );
     if (!ncRow.length) return res.status(400).json({ error: "nc_id inválido" });
 
-    // Extrai atributos do objeto 'atributos' enviado pelo frontend ou campos flat
     const atrObj   = atributos || {};
     const combObj  = combate   || {};
     const socObj   = sociais   || {};
@@ -202,7 +182,6 @@ router.post("/fichas", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// GET /api/naruto/fichas/:id  — ficha completa
 router.get("/fichas/:id", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
   try {
@@ -247,11 +226,6 @@ router.get("/fichas/:id", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// PUT /api/naruto/fichas/:id/salvar  — autosave do React
-// Payload: nome_personagem, nome_jogador, nc (número),
-//   vitalidade_atual/maxima, chakra_atual/maximo, ryos,
-//   dados_pericias (JSON string), historico_rolagens (JSON string),
-//   dados_extras (JSON string com atrEdit, hcBonus, aptidoes, jutsus, poderes, itensMochila)
 router.put("/fichas/:id/salvar", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
 
@@ -275,7 +249,6 @@ router.put("/fichas/:id/salvar", async (req, res) => {
     );
     if (!check.length) return res.status(403).json({ error: "Sem permissão" });
 
-    // Se o NC mudou, atualiza nc_id (pega o de maior pontos_poder para o NC informado)
     let nc_id = check[0].nc_id;
     if (nc) {
       const [ncRow] = await pool.query(
@@ -285,7 +258,6 @@ router.put("/fichas/:id/salvar", async (req, res) => {
       if (ncRow.length) nc_id = ncRow[0].id;
     }
 
-    // Extrai campos do dados_extras para colunas nativas
     let extrasObj = {};
     try { extrasObj = JSON.parse(dados_extras || "{}"); } catch {}
 
@@ -294,10 +266,8 @@ router.put("/fichas/:id/salvar", async (req, res) => {
     const poderes      = JSON.stringify(extrasObj.poderes      ?? []);
     const aptidoes     = JSON.stringify(extrasObj.aptidoes     ?? []);
     const equipamentos = JSON.stringify(extrasObj.itensMochila ?? []);
-    // Salva dados_extras completo (inclui jutsus, hcBonus, etc.) na coluna notas
     const notas        = dados_extras || null;
 
-    // Se atrEdit tiver valores, atualiza colunas atr_*; senão preserva o que está no banco
     const atrFields = temAtrEdit
       ? `atr_forca = ?, atr_destreza = ?, atr_agilidade = ?, atr_percepcao = ?,
          atr_inteligencia = ?, atr_vigor = ?, atr_espirito = ?,`
@@ -346,7 +316,6 @@ router.put("/fichas/:id/salvar", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// DELETE /api/naruto/fichas/:id
 router.delete("/fichas/:id", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
   try {
@@ -357,7 +326,6 @@ router.delete("/fichas/:id", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// POST /api/naruto/fichas/:id/duplicar
 router.post("/fichas/:id/duplicar", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
   try {
@@ -398,10 +366,6 @@ router.post("/fichas/:id/duplicar", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// =============================================================================
-// CAMPANHAS
-// =============================================================================
-
 router.get("/campanhas", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
   try {
@@ -410,7 +374,7 @@ router.get("/campanhas", async (req, res) => {
 
     const [rows] = await pool.query(`
       SELECT DISTINCT
-        c.id, c.nome, c.descricao, c.criado_em,
+        c.id, c.nome, c.descricao, c.imagem, c.criado_em,
         n.nc AS nc_campanha,
         CASE WHEN c.user_id_mestre = ? THEN 1 ELSE 0 END AS sou_mestre,
         (SELECT COUNT(*) FROM naruto_campanha_jogadores cj2 WHERE cj2.campanha_id = c.id) AS total_jogadores
@@ -502,12 +466,14 @@ router.delete("/campanhas/:id", async (req, res) => {
   try {
     const user = await getUserId(req.session.google_id);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
-    await pool.query("DELETE FROM naruto_campanhas WHERE id = ? AND user_id_mestre = ?", [req.params.id, user.id]);
+    const [check] = await pool.query("SELECT id FROM naruto_campanhas WHERE id = ? AND user_id_mestre = ?", [req.params.id, user.id]);
+    if (!check.length) return res.status(403).json({ error: "Sem permissão para deletar esta campanha" });
+    await pool.query("DELETE FROM naruto_campanha_jogadores WHERE campanha_id = ?", [req.params.id]);
+    await pool.query("DELETE FROM naruto_campanhas WHERE id = ?", [req.params.id]);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// POST /api/naruto/campanhas/:id/entrar  — vincula ficha à campanha
 router.post("/campanhas/:id/entrar", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
   const { ficha_id } = req.body;
@@ -532,7 +498,6 @@ router.post("/campanhas/:id/entrar", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// DELETE /api/naruto/campanhas/:id/sair
 router.delete("/campanhas/:id/sair", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
   try {
@@ -545,10 +510,6 @@ router.delete("/campanhas/:id/sair", async (req, res) => {
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
-// =============================================================================
-// ESCUDO DO MESTRE
-// =============================================================================
 
 router.get("/campanhas/:id/fichas", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
@@ -587,10 +548,6 @@ router.get("/campanhas/:id/fichas", async (req, res) => {
     res.json(rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
-// =============================================================================
-// ROLAGENS DA CAMPANHA  (polling)
-// =============================================================================
 
 router.get("/campanhas/:id/rolagens", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
@@ -659,7 +616,6 @@ router.post("/campanhas/:id/rolagens", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// GET /api/naruto/itens  — catálogo de itens da loja
 router.get("/itens", async (req, res) => {
   try {
     const [rows] = await pool.query(
