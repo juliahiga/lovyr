@@ -3,10 +3,12 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import "../styles/Campanhas.css";
 import tlouImg from "../assets/tlouTTRPG.png";
+import narutoImg from "../assets/naruto_sns.png";
 import { useUser } from "../context/UserContext";
 
 const sistemas = [
-  { id: "tlou", nome: "The Last of Us", imagem: tlouImg },
+  { id: "tlou",   nome: "The Last of Us",          imagem: tlouImg   },
+  { id: "naruto", nome: "Naruto: Shinobi no Sho",  imagem: narutoImg },
 ];
 
 const formatarData = (dataStr) => {
@@ -56,15 +58,13 @@ const ModalDeletarCampanha = ({ campanha, onConfirmar, onCancelar }) => {
 /* ── Card de campanha ── */
 const CampanhaCard = ({ c, onDeletar }) => {
   const navigate = useNavigate();
-  // jogadores sem contar o mestre
-  //const totalJogadores = c.sou_mestre
-  //  ? c.total_jogadores
-  //    : c.total_jogadores;
+  const rota = c.sistema === "naruto" ? `/campanha-naruto/${c.id}` : `/campanha/${c.id}`;
+  const sistemaNome = c.sistema === "naruto" ? "Naruto: Shinobi no Sho" : "The Last of Us";
 
   return (
     <div
       className="campanha-card"
-      onClick={() => navigate(`/campanha/${c.id}`)}
+      onClick={() => navigate(rota)}
     >
       <div className="campanha-card-imagem">
         {c.imagem ? (
@@ -75,7 +75,7 @@ const CampanhaCard = ({ c, onDeletar }) => {
           </div>
         )}
 
-        {/* Badge de jogadores — fundo transparente */}
+        {/* Badge de jogadores */}
         <div className="campanha-card-jogadores">
           <i className="fa-solid fa-people-group" />
           <span>{c.total_jogadores}</span>
@@ -95,7 +95,7 @@ const CampanhaCard = ({ c, onDeletar }) => {
 
       <div className="campanha-card-info">
         <div className="campanha-card-nome">{c.nome}</div>
-        <div className="campanha-card-sistema">The Last of Us</div>
+        <div className="campanha-card-sistema">{sistemaNome}</div>
       </div>
 
       <div className="campanha-card-footer">
@@ -107,7 +107,7 @@ const CampanhaCard = ({ c, onDeletar }) => {
         </div>
         <button
           className="campanha-acessar-btn"
-          onClick={(e) => { e.stopPropagation(); navigate(`/campanha/${c.id}`); }}
+          onClick={(e) => { e.stopPropagation(); navigate(rota); }}
         >
           Acessar
         </button>
@@ -128,11 +128,16 @@ const Campanhas = () => {
 
   const buscarCampanhas = () => {
     setCarregando(true);
-    fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/campanhas`, { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => setCampanhas(Array.isArray(data) ? data : []))
-      .catch(() => setCampanhas([]))
-      .finally(() => setCarregando(false));
+    const API = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+    Promise.all([
+      fetch(`${API}/api/tlou/campanhas`,   { credentials: "include" }).then(r => r.json()).catch(() => []),
+      fetch(`${API}/api/naruto/campanhas`, { credentials: "include" }).then(r => r.json()).catch(() => []),
+    ]).then(([tlou, naruto]) => {
+      const tlouMapped   = (Array.isArray(tlou)   ? tlou   : []).map(c => ({ ...c, sistema: "tlou" }));
+      const narutoMapped = (Array.isArray(naruto) ? naruto : []).map(c => ({ ...c, sistema: "naruto" }));
+      const todas = [...tlouMapped, ...narutoMapped].sort((a, b) => new Date(b.criado_em) - new Date(a.criado_em));
+      setCampanhas(todas);
+    }).finally(() => setCarregando(false));
   };
 
   useEffect(() => {
@@ -143,12 +148,13 @@ const Campanhas = () => {
 
   const handleDeletar = async () => {
     if (!modalDeletar) return;
+    const API = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+    const endpoint = modalDeletar.sistema === "naruto"
+      ? `${API}/api/naruto/campanhas/${modalDeletar.id}`
+      : `${API}/api/tlou/campanhas/${modalDeletar.id}`;
     try {
-      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/campanhas/${modalDeletar.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      setCampanhas((prev) => prev.filter((c) => c.id !== modalDeletar.id));
+      await fetch(endpoint, { method: "DELETE", credentials: "include" });
+      setCampanhas((prev) => prev.filter((c) => !(c.id === modalDeletar.id && c.sistema === modalDeletar.sistema)));
     } catch {}
     finally { setModalDeletar(null); }
   };
@@ -210,7 +216,7 @@ const Campanhas = () => {
                   className={`sistema-card ${hoveredSistema === s.id ? "hovered" : ""}`}
                   onMouseEnter={() => setHoveredSistema(s.id)}
                   onMouseLeave={() => setHoveredSistema(null)}
-                  onClick={() => navigate("/nova-campanha-tlourpg")}
+                  onClick={() => s.id === "naruto" ? navigate("/nova-campanha-naruto") : navigate("/nova-campanha-tlourpg")}
                 >
                   <img src={s.imagem} alt={s.nome} />
                   <span>{s.nome}</span>

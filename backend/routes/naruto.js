@@ -427,37 +427,73 @@ router.get("/campanhas", async (req, res) => {
 
 router.post("/campanhas", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
-  const { nome, descricao, nc_id } = req.body;
+  const { nome, descricao, imagem, nc_id } = req.body;
   if (!nome) return res.status(400).json({ error: "Nome é obrigatório" });
   try {
     const user = await getUserId(req.session.google_id);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
 
     const [result] = await pool.query(
-      "INSERT INTO naruto_campanhas (nome, descricao, user_id_mestre, nome_mestre, nc_id) VALUES (?, ?, ?, ?, ?)",
-      [nome, descricao || null, user.id, user.name, nc_id || null]
+      "INSERT INTO naruto_campanhas (nome, descricao, imagem, user_id_mestre, nome_mestre, nc_id) VALUES (?, ?, ?, ?, ?, ?)",
+      [nome, descricao || null, imagem || null, user.id, user.name, nc_id || null]
     );
     res.status(201).json({ id: result.insertId });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.get("/campanhas/:id", async (req, res) => {
+  try {
+    const [campanhaRows] = await pool.query(`
+      SELECT c.*
+      FROM naruto_campanhas c
+      WHERE c.id = ?
+    `, [req.params.id]);
+    if (!campanhaRows.length) return res.status(404).json({ error: "Campanha não encontrada" });
+
+    const [jogadores] = await pool.query(`
+      SELECT cj.id, cj.user_id, cj.ficha_id, cj.nome_jogador, cj.nome_personagem, cj.entrou_em,
+        f.imagem, f.nc_id,
+        n.nivel_shinobi,
+        COALESCE(u.custom_picture, u.picture) AS picture
+      FROM naruto_campanha_jogadores cj
+      JOIN naruto_fichas f ON cj.ficha_id = f.id
+      LEFT JOIN naruto_niveis_campanha n ON n.id = f.nc_id
+      LEFT JOIN users u ON cj.user_id = u.id
+      WHERE cj.campanha_id = ? ORDER BY cj.entrou_em ASC
+    `, [req.params.id]);
+
+    let sou_mestre = false;
+    let sou_membro = false;
+    if (req.session.google_id) {
+      const user = await getUserId(req.session.google_id);
+      if (user) {
+        sou_mestre = campanhaRows[0].user_id_mestre === user.id;
+        sou_membro = jogadores.some(j => j.user_id === user.id);
+      }
+    }
+
+    res.json({ ...campanhaRows[0], sou_mestre, sou_membro, jogadores });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.put("/campanhas/:id", async (req, res) => {
   if (!req.session.google_id) return res.status(401).json({ error: "Não autenticado" });
   try {
     const user = await getUserId(req.session.google_id);
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
-
-    const [rows] = await pool.query(`
-      SELECT c.*, n.nc AS nc_campanha,
-        CASE WHEN c.user_id_mestre = ? THEN 1 ELSE 0 END AS sou_mestre
-      FROM naruto_campanhas c
-      LEFT JOIN naruto_niveis_campanha n ON n.id = c.nc_id
-      LEFT JOIN naruto_campanha_jogadores cj ON cj.campanha_id = c.id AND cj.user_id = ?
-      WHERE c.id = ? AND (c.user_id_mestre = ? OR cj.user_id = ?)
-    `, [user.id, user.id, req.params.id, user.id, user.id]);
-
-    if (!rows.length) return res.status(404).json({ error: "Campanha não encontrada" });
-    res.json(rows[0]);
+    const { nome, descricao, imagem } = req.body;
+    const fields = [];
+    const values = [];
+    if (nome      !== undefined) { fields.push("nome = ?");      values.push(nome); }
+    if (descricao !== undefined) { fields.push("descricao = ?"); values.push(descricao); }
+    if (imagem    !== undefined) { fields.push("imagem = ?");    values.push(imagem); }
+    if (!fields.length) return res.status(400).json({ error: "Nada para atualizar" });
+    values.push(req.params.id, user.id);
+    await pool.query(
+      `UPDATE naruto_campanhas SET ${fields.join(", ")} WHERE id = ? AND user_id_mestre = ?`,
+      values
+    );
+    res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -531,6 +567,8 @@ router.get("/campanhas/:id/fichas", async (req, res) => {
         f.id, f.nome_personagem, f.nome_jogador,
         f.vitalidade_atual, f.vitalidade_maxima,
         f.chakra_atual, f.chakra_maximo,
+        f.atr_forca, f.atr_destreza, f.atr_agilidade,
+        f.atr_percepcao, f.atr_inteligencia, f.atr_vigor, f.atr_espirito,
         f.ryos, f.imagem,
         n.nc, n.nivel_shinobi,
         cl.nome AS cla_nome,

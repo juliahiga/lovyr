@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/NovaCampanhaTlouRpg.css";
+import "../styles/NovaCampanhaNarutoRpg.css";
 import { useUser } from "../context/UserContext";
 
-const NovaCampanhaTLOU = () => {
+const NovaCampanhaNaruto = () => {
   useUser();
   const navigate = useNavigate();
 
@@ -41,7 +41,7 @@ const NovaCampanhaTLOU = () => {
     setEnviando(true);
     try {
       const descricaoHTML = editorRef.current?.innerHTML || "";
-      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/tlou/campanhas`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:3001"}/api/naruto/campanhas`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -51,7 +51,7 @@ const NovaCampanhaTLOU = () => {
           imagem: imagem || null,
         }),
       });
-      if (res.ok) { const data = await res.json(); navigate(`/campanha/${data.id}`); }
+      if (res.ok) { const data = await res.json(); navigate(`/campanha-naruto/${data.id}`); }
     } finally {
       setEnviando(false);
     }
@@ -60,18 +60,18 @@ const NovaCampanhaTLOU = () => {
   const podeCriar = nome.trim().length > 0;
 
   return (
-    <div className="nova-campanha-page">
-      <h1 className="nova-campanha-titulo">Nova Campanha</h1>
+    <div className="ncn-page">
+      <h1 className="ncn-titulo">Nova Campanha</h1>
 
-      <div className="nova-campanha-form">
+      <div className="ncn-form">
 
         {/* Nome */}
-        <div className="nc-field">
-          <label className="nc-label">
-            Nome da Campanha <span className="nc-obrigatorio">*</span>
+        <div className="ncn-field">
+          <label className="ncn-label">
+            Nome da Campanha <span className="ncn-obrigatorio">*</span>
           </label>
           <input
-            className="nc-input"
+            className="ncn-input"
             type="text"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
@@ -80,17 +80,17 @@ const NovaCampanhaTLOU = () => {
         </div>
 
         {/* Imagem */}
-        <div className="nc-field">
-          <label className="nc-label">Imagem de Campanha</label>
+        <div className="ncn-field">
+          <label className="ncn-label">Imagem de Campanha</label>
           {imagemPreview ? (
-            <div className="nc-imagem-preview-wrap">
-              <img src={imagemPreview} alt="preview" className="nc-imagem-preview" />
-              <button className="nc-remover-imagem" onClick={handleRemoverImagem}>
+            <div className="ncn-imagem-preview-wrap">
+              <img src={imagemPreview} alt="preview" className="ncn-imagem-preview" />
+              <button className="ncn-remover-imagem" onClick={handleRemoverImagem}>
                 ✕ Remover
               </button>
             </div>
           ) : (
-            <button className="nc-upload-btn" onClick={() => fileInputRef.current?.click()}>
+            <button className="ncn-upload-btn" onClick={() => fileInputRef.current?.click()}>
               📁 Escolher imagem
             </button>
           )}
@@ -104,17 +104,17 @@ const NovaCampanhaTLOU = () => {
         </div>
 
         {/* Descrição */}
-        <div className="nc-field">
-          <label className="nc-label">Descrição</label>
-          <div className="nc-editor">
-            <div className="nc-editor-toolbar">
-              <button className="nc-format-btn" onClick={() => handleFormat("bold")}><b>B</b></button>
-              <button className="nc-format-btn" onClick={() => handleFormat("italic")}><i>I</i></button>
-              <button className="nc-format-btn" onClick={() => handleFormat("underline")}><u>U</u></button>
+        <div className="ncn-field">
+          <label className="ncn-label">Descrição</label>
+          <div className="ncn-editor">
+            <div className="ncn-editor-toolbar">
+              <button className="ncn-format-btn" onClick={() => handleFormat("bold")}><b>B</b></button>
+              <button className="ncn-format-btn" onClick={() => handleFormat("italic")}><i>I</i></button>
+              <button className="ncn-format-btn" onClick={() => handleFormat("underline")}><u>U</u></button>
             </div>
             <div
               ref={editorRef}
-              className="nc-editor-body"
+              className="ncn-editor-body"
               contentEditable
               suppressContentEditableWarning
             />
@@ -122,12 +122,12 @@ const NovaCampanhaTLOU = () => {
         </div>
 
         {/* Ações */}
-        <div className="nc-acoes">
-          <button className="nc-cancelar-btn" onClick={() => navigate("/campanhas")}>
+        <div className="ncn-acoes">
+          <button className="ncn-cancelar-btn" onClick={() => navigate("/campanhas")}>
             Cancelar
           </button>
           <button
-            className={`nc-criar-btn ${!podeCriar || enviando ? "disabled" : ""}`}
+            className={`ncn-criar-btn ${!podeCriar || enviando ? "disabled" : ""}`}
             onClick={podeCriar && !enviando ? handleSubmit : undefined}
           >
             {enviando ? "Criando..." : "Criar Campanha"}
@@ -139,4 +139,4 @@ const NovaCampanhaTLOU = () => {
   );
 };
 
-export default NovaCampanhaTLOU;
+export default NovaCampanhaNaruto;

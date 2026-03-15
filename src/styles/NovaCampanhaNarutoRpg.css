@@ -1,0 +1,244 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap');
+
+.ncn-page {
+  min-height: calc(100vh - 91px);
+  margin-top: 1px;
+  background-color: #14120e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+/* Wrapper que limita a largura de título + form juntos */
+.ncn-page > * {
+  width: 100%;
+  max-width: 1000px;
+}
+
+.ncn-titulo {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 28px;
+  font-weight: 500;
+  color: #C79255;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0 0 10px 0;
+}
+
+.ncn-form {
+  background-color: #1e1b14;
+  border: 1px solid #3a3020;
+  border-radius: 12px;
+  padding: 28px 32px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ─── Fields ── */
+.ncn-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ncn-label {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ebdfb3;
+}
+
+.ncn-obrigatorio {
+  color: #C79255;
+  margin-left: 2px;
+}
+
+.ncn-obs {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 12px;
+  color: #6b5e3e;
+  margin: 0;
+  font-style: italic;
+}
+
+.ncn-input {
+  background-color: #14120e;
+  border: 1px solid #3a3020;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 15px;
+  color: #ebdfb3;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ncn-input:focus { border-color: #C79255; }
+.ncn-input::placeholder { color: #6b5e3e; }
+
+/* ─── Editor ── */
+.ncn-editor {
+  border: 1px solid #3a3020;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #14120e;
+  transition: border-color 0.2s;
+}
+
+.ncn-editor:focus-within { border-color: #C79255; }
+
+.ncn-editor-toolbar {
+  display: flex;
+  gap: 2px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #3a3020;
+  background-color: #1e1b14;
+}
+
+.ncn-format-btn {
+  background: none;
+  border: none;
+  color: #ebdfb3;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 15px;
+  padding: 3px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+  line-height: 1;
+}
+
+.ncn-format-btn:hover {
+  background-color: #2f2a1f;
+  color: #C79255;
+}
+
+.ncn-editor-body {
+  min-height: 140px;
+  padding: 12px 14px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 15px;
+  color: #ebdfb3;
+  outline: none;
+  line-height: 1.6;
+}
+
+.ncn-editor-body:empty::before {
+  content: "Escreva uma descrição para sua campanha...";
+  color: #6b5e3e;
+  pointer-events: none;
+}
+
+/* ─── Upload de Imagem ── */
+.ncn-upload-btn {
+  background-color: #14120e;
+  border: 1px solid #3a3020;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 14px;
+  color: #6b5e3e;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  width: fit-content;
+}
+
+.ncn-upload-btn:hover {
+  border-color: #C79255;
+  color: #C79255;
+}
+
+.ncn-imagem-preview-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ncn-imagem-preview {
+  width: 260px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #3a3020;
+}
+
+.ncn-remover-imagem {
+  background: none;
+  border: 1px solid #6b5e3e;
+  border-radius: 6px;
+  color: #6b5e3e;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 16px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.ncn-remover-imagem:hover {
+  border-color: #e55;
+  color: #e55;
+}
+
+/* ─── Ações ── */
+.ncn-acoes {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.ncn-cancelar-btn {
+  background: none;
+  border: none;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #6b5e3e;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.ncn-cancelar-btn:hover {
+  color: #ebdfb3;
+  background-color: #2f2a1f;
+}
+
+.ncn-criar-btn {
+  background-color: #C79255;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #fef2c4;
+  border: none;
+  padding: 10px 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.ncn-criar-btn:hover { background-color: #7a5c3b; }
+
+.ncn-criar-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ncn-criar-btn.disabled:hover { background-color: #C79255; }
+
+/* ─── Responsivo ── */
+@media (max-width: 1000px) {
+  .ncn-form { padding: 20px 16px; }
+  .ncn-titulo { font-size: 22px; }
+}
